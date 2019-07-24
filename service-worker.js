@@ -26,7 +26,7 @@ self.addEventListener('fetch', function(evt) {
 function precache() {
   return caches.open(CACHE).then(function (cache) {
     return cache.addAll([
-      './CFAA.html',
+      './index.html',
       './cfaa/aide.gif',
       './cfaa/Aide.jpg',
       './cfaa/Barlow.jpg',
