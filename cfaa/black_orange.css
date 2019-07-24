@@ -1,0 +1,73 @@
+BODY {
+ background-color: #000000;
+ scrollbar-face-color: #000000;
+ scrollbar-shadow-color: #FFAA00;
+ scrollbar-highlight-color: #FFAA00;
+ scrollbar-3dlight-color: #000000;
+ scrollbar-darkshadow-color: #000000;
+ scrollbar-track-color: #000000;
+ scrollbar-arrow-color: #FFAA00;
+  }
+  
+ A:link {
+ text-decoration: none;
+ color: #FFAA00!important;
+ }
+
+  A:visited{
+ text-decoration: none;
+ color: #FFAA00;
+ }
+ 
+ TD {
+  color:#FFAA00
+ }
+  
+ A:link.Accueil {
+ text-decoration: none;
+ color:#FFAA00;!important
+ }
+ 
+ A:visited.Accueil{
+ text-decoration: none;
+ color: #FFAA00;
+ }
+ 
+.sombre {
+ background: #000000;
+ }
+  
+.titre {
+ color:FFAA00;/**/
+ }
+
+.MaTable {
+ border-color: #FFAA00 #FFAA00 #FFAA00 #FFAA00;
+ background-color: #000000;
+ }
+
+.menu {
+border-bottom:solid 0px #FFAA00;
+}
+
+.boite {
+border:solid 1px #000000;/*!!!!!*/
+background-color:#000000;
+border-color: #FFAA00 #FFAA00 #FFAA00 #FFAA00;
+}
+
+.onglet {
+border-color: #FFAA00 #FFAA00 #FFAA00 #FFAA00;
+background-color:#000000;
+}
+
+a.onglet {
+text-decoration:none;
+color:CC8800!important;
+}
+
+.onglet-actif {
+border:solid 1px #FFAA00;
+border-bottom:solid 2px #000000;
+background-color:#000000;
+}

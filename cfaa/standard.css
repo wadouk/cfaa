@@ -1,0 +1,161 @@
+/*____________________________________________________________________*/
+/*ici la skin CSS du site, si vous modifiez cette partie, n'hesitez pas à m'en envoyer une copie_*/
+/*____________________________________________________________________*/
+BODY {
+ background-color: #C0C8E8;
+ scrollbar-face-color: #DFEFFF;
+ scrollbar-shadow-color: #000000;
+ scrollbar-highlight-color: #FFFFFF;
+ scrollbar-3dlight-color: #000000;
+ scrollbar-darkshadow-color: #000000;
+ scrollbar-track-color: #C0C8E8;
+ scrollbar-arrow-color: #000000;
+ }
+ 
+TD {
+ font-family: verdana, arial, Helvetica;
+ font-Size : 12px
+ }
+
+A:link {
+ text-decoration: none;
+ color: black;
+ }
+
+/*A:active {
+ text-decoration: none;
+ }*/
+
+A:hover {
+ text-decoration: underline !important;
+ color: black;
+ }
+
+ A:visited{
+ text-decoration: none;
+ color: black;
+ }
+ 
+  A:link.Accueil {
+ text-decoration: none;
+ color:#D8DEF4;!important
+ }
+ 
+  A:visited.Accueil{
+ text-decoration: none;
+ color: #D8DEF4;
+ }
+ 
+  .sel_gris{
+  /*color: #D8DEF4;*/
+  background:#E6E6E6;
+ }
+ 
+  .blanc{
+  color:black;
+  background:white;
+ }
+ 
+  .noir{
+  background:black;
+ }
+ 
+  .sombre {
+ background: #B0B8D8;
+ }
+ 
+   .clair {
+  background: #D8DEF4
+ }
+ 
+  .titre {
+ color:navy;
+ font-family: Times,Arial Roman,New;/*times, serif ;*/
+ font-size: 24pt;
+ font-weight:bold;
+/*font-style: strong;/*italic ;*/
+/*background-color : #D8DEF4 ; */
+ /* border: solid;
+ border-width: 2px 5px 5px 2px;
+ border-color: #666699 #434365 #434365 #666699;*/
+ }
+ 
+UL.sq {
+ PADDING: 15px 15px 0px 10px;
+ MARGIN: 0px 0px 0px 15px;
+ LIST-STYLE-TYPE: square;
+ /*color:navy;*/
+ }
+
+.MaTable {
+ border: solid;
+ border-width: 1px 1px 1px 1px;/* 1px 2px 2px 1px   */
+ border-color: #000000 #434365 #434365 #000000;
+ background-color: #D8DEF4;
+ }
+ 
+select {
+ padding: 0px;
+ background-color: #fff;
+ color: #222;
+ font: 13px;
+ }
+
+/*input.formfond {
+ border: solid 1px #000;
+ }*/
+
+input {
+ /*font: 90% Verdana,Sans-serif;*/
+ font-family: verdana, arial, Helvetica;
+ font-Size : 12px
+ }	
+
+/*.param { width:10;border: solid; border-width: 2px 5px 5px 2px; border-color: #666699 #434365 #434365 #666699; background-color: red; }*/
+
+/*onglets dans configuration*/
+/* boite qui contient le menu (crée le trait noir en-dessous des onglets) */
+.menu {
+border-bottom:solid 1px #666699;
+padding:5px 0px 3px 0px;
+}
+/* style de l'onglet de la page active */
+.boite {
+border:solid 0px #ff0000;
+/*border-top:solid 0px red;*/
+padding:13px 13px 13px 13px;
+background-color:#D8DEF4;
+
+/*border-width: 0px 5px 5px 2px;
+ border-color: #666699 #434365 #434365 #666699;*/
+ 
+  border-width: 0px 2px 2px 1px;
+ border-color: #000000 #434365 #434365 #000000;
+}
+/* style des onglets inactifs */
+.onglet {
+border:solid 1px #666699;
+
+ /*border-width: 2px 3px 2px 2px;*/
+ /*border-right:solid 5px #666699;*/
+ border-width: 1px 2px 0px 1px;
+ border-color: #000000 #434365 #434365 #000000;
+
+margin:5px 5px 0px 5px;
+padding:3px 3px 3px 3px;
+background-color:#B0B8D8;
+}
+/* style des liens se trouvant dans un onglet inactif */
+/*a.onglet {
+background-color:#B0B8D8;
+text-decoration:none;
+}*/
+/* style de l'onglet de la page active */
+.onglet-actif {
+border:solid 1px #666699;
+border-width: 1px 1px 0px 1px;
+border-bottom:solid 2px #D8DEF4;
+margin:5px 5px 0px 5px;
+padding:3px 3px 3px 3px;
+background-color:#D8DEF4;
+}

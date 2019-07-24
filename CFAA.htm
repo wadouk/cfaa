@@ -1,0 +1,2523 @@
+<HTML><HEAD>
+<LINK REL="SHORTCUT ICON" HREF="cfaa/cfaa.ico">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+<LINK rel="stylesheet" media="screen" href="cfaa/standard.css" type="text/css" />
+<link rel="alternate stylesheet" href="cfaa/black.css" type="text/css" title="black">
+<link rel="alternate stylesheet" href="cfaa/black_orange.css" type="text/css" title="black_orange">
+<link rel="alternate stylesheet" href="cfaa/grey_white.css" type="text/css" title="grey_white">
+<link rel="alternate stylesheet" href="cfaa/grey_red.css" type="text/css" title="grey_red">
+<link rel="alternate stylesheet" href="cfaa/white.css" type="text/css" title="white">
+<TITLE>Calculs de Focales pour l'Astronome Amateur</TITLE>
+</HEAD><BODY><CENTER><FORM>
+<DIV id='Ecran1'></DIV>
+<DIV id='Ecran2'></DIV>
+<SCRIPT type='text/javascript'>
+navigator.serviceWorker.register('service-worker.js')
+
+    //--------------------------------------------------------------------------------------
+// Valeurs par défault (utile en local si vous effacez souvent vos cookies) :
+// Mettre les mêmes valeurs que dans "configuration" (attention pas de virgule mais un point)
+//--------------------------------------------------------------------------------------
+var Foc_tel=   '900' // Focale en mm de votre télescope
+var Diam_prim= '114' // Diamètre en mm du miroir primaire ou de l'objectif du télescope
+var Coulant=   "31.75" // Diamètre du coulant du porte oculaire en mm
+var Foc_oc=    '12' // Focale de l'oculaire utilisé par défaut
+var champ_oc=  "30" // Champ apparent de l'oculaire utilisé par défaut
+var obj=       "Jupiter" // Objet observé par défaut
+var CCD=       "Toucam Pro" // Nom de votre caméra exactement comme dans le select (voir plus bas)
+var x_jum=     "10" // Grossissement jumelles par défaut
+var diam_jum=  "50" // Diamètre jumelles par défaut
+var field_jum= "6.55" // champ visuel field jumelles par defaut
+var champ_jum= "114" // champ visuel en mètres jumelles pr defaut
+var x_Bar=     '2' // Grossissement par défaut de votre Barlow
+var Foc_Bar=   '150' // Focale en mm par défaut de votre Barlow
+var Foc_Bar2=  "150" // Focale de la Barlow N°2
+var Bar_2_Bar= "120" // Tirage entre les 2 Barlow
+var Tirage=    "70" // Tirage par défaut pour obtenir le grandissement désiré
+var x_res=     "5" // Grossissement souhaité par défaut lorsque Tirage avec oculaire
+var taille_avec_Bar= "70" // Taille sur le CCD par défaut de la planète avec Barlow pour le calcul de focale de la Barlow
+var taille_sans_Bar= "35" // Idem sans Barlow
+var voir_img=1       // Le tableau(1) du schema du montage optique est visible [1] ou reduit [0] par défaut
+var voir_res=1       // Le tableau(2) des résultats est visible [1] ou reduit [0] par défaut
+var voir_sim=1       // Le tableau(3) de la simulation est visible [1] ou reduit [0] par défaut
+var voir_formules=0  // Les formules sont visibles [1] ou invisibles [0] par défaut
+var voir_scroll=0    // Scroll on ou off par défaut
+var ordre= [1,2,3] // Ordre d'affichage à l'écran. 1 = tableau du schema optique, 2 = tableau des résultats, 3 = tableau de la simulation
+var scroll_str=  "scroll" // "auto" ou "hidden" ou "scroll" (scroll=ascensseurs permanents, auto=ascensseurs uniquement si nécessaire)
+var chemin_img = "cfaa/"; // Chemin du repertoire ou se trouvent les images
+/*var url_cfaa="http://cfaa.is.free.fr/"*/
+var Tiragef=160//utiliser dans tirage barlow,  à verifier
+var skin='standard'
+var arrondi=title=false//n'arrondi pas à 1/10000, pas de titre par defaut, see=false
+var my_scroll=my_url=fct=''
+var rad_sec=(180/Math.PI)*3600
+var rad_sec_m=rad_sec/1000
+var tmp=[]//tableau qui contiendra tous les selects, besoin avant rac
+var zoom=zoom_o=zoom_p=14//par défaut le zoom est sur 1:1
+var FF_or_IE=document.all?0:1
+var E="&nbsp;"
+var EE=E+E
+var cook=false //si cookie non lue
+var ord1,ord2,ord3//variables globales pour connaitre l'ordre des tableaux
+var num_cfg=1//onglet par defaut
+var ordre_str=ordre[0]+""+ordre[1]+""+ordre[2]//au cas ou pas de cookies dans la config uniquement, à remplacer si possible
+var sd="selected"
+var rf=";return false'>"//à verifier si fonctionne
+
+function Formule(f){return(voir_formules)?"<FONT color=darkolivegreen size=-2><I>"+EE+((f*0!=0)?f:fo[f])+"</I></FONT>":""}
+function titre(str){return "<center><FONT class=titre>"+str+"</font></center>"}//color=navy face=Times,Arial Roman,New size=6
+function red(str){return "<FONT color=crimson>"+str+"</FONT>"}
+//2 écrans, celui des selects n'est mis à jour que si le type d'objet change. ( pour la roulette ds IE)
+screen1=document.getElementById('Ecran1')
+screen2=document.getElementById('Ecran2')
+
+var acc_fr=[]
+//Tableau des phrases de l'accueil
+acc_fr[0]="Observation à l'oculaire"
+acc_fr[1]="Prise de vue CCD"
+acc_fr[2]="Photographie"
+acc_fr[3]="Calcul focale Barlow"
+acc_fr[4]="Calculs de Focales<br>"
+acc_fr[5]="<i>pour<p> l'Astronome Amateur.</i>"
+acc_fr[6]="Infos télescope"
+acc_fr[7]="Infos Jumelles"
+acc_fr[8]="Configuration"
+acc_fr[9]="Aide"
+acc_fr[10]="Télécharger CFAA"
+acc_fr[11]="(Mis à jour le 18/10/2007)"
+//titres utilisées dans les tableaux
+acc_fr[12]="Schéma"
+acc_fr[13]="Résultats"
+acc_fr[14]="Simulation"
+acc_fr[15]="Simulation CCD"
+acc_fr[16]="Simulation Film"
+acc_fr[17]="-Créer un raccourci-"
+
+var but=[]//phrases dans les boutons
+but[0]="<< &nbsp;&nbsp;Retour"
+but[1]="Calculer"
+but[2]="Retour à CFAA"
+but[3]="ø en ce moment."
+but[4]="ø moyen."
+but[5]="Enregistrer les modifications"
+but[6]="Modifier les valeurs"
+
+var t_month=["","Janvier","Fevrier","Mars","Avril","Mai","Juin","Juillet","Aout","Septembre","Octobre","Novembre","Decembre"]
+
+var ti=[]//titre 1 par fonction, ou pages présentes, l'index est le num de la fct
+ti[0]="Calcul du grossissement en fonction de la focale de l'oculaire et de l'objectif."
+ti[1]="Calcul du Tirage nécessaire pour obtenir un grandissement en fonction de la focale de la Barlow."
+ti[2]="Calcul du facteur de grossissement de la Barlow en fonction de sa focale et du Tirage."
+ti[3]="Calcul du Tirage nécessaire pour obtenir un grandissement en fonction de la focale de l'oculaire."
+ti[4]="Calcul du grossissement en fonction de la focale de l'oculaire et du Tirage."
+ti[5]="Télescope + CCD."
+ti[6]="Calcul de la focale résultante en fonction de la focale de l'objectif et du facteur de grossissement de la Barlow."
+ti[7]="Télescope + Barlow + Tirage + Barlow + CCD."
+ti[8]="Télescope + Barlow + Tirage + Barlow + Tirage + CCD."
+ti[9]="Télescope + photo."
+ti[10]="Télescope + Tirage + photo."
+ti[11]="Calcul de la focale de la Barlow et du télescope."
+ti[12]="Caractéristiques du télescope."
+ti[13]="Calculs sur les jumelles."
+ti[14]="Conversions."
+ti[15]="Calcul d'éphémérides."
+ti[16]="Télescope + Barlow + Oculaire."
+ti[17]="Télescope + Oculaire."
+ti[18]="Télescope + Barlow + Tirage + Oculaire."
+ti[19]="Télescope + Barlow + CCD."
+ti[20]="Télescope + Barlow + Tirage + CCD."
+ti[21]="Télescope + Oculaire + Tirage + CCD."
+ti[22]="Télescope + Barlow + Tirage + Photo."
+ti[23]="Télescope + Oculaire + Tirage + Photo."
+ti[24]="Calculs sur les jumelles en fonction du champ visuel en degrés (fields)."
+ti[25]="Calculs sur les jumelles en fonction du champ visuel en mètre à 1km."
+ti[26]="Choix de la formule optique :"
+ti[27]="Simuler un oculaire du commerce :"
+ti[28]="Simuler une paire de jumelles du commerce :"
+ti[29]="Simuler un télescope du commerce :"
+ti[30]="Comprendre et utiliser les raccourcis."
+ti[31]="Installer CFAA en local."
+ti[32]="Simuler un télescope historique :"
+ti[33]="Simuler un observatoire :"
+ti[34]="Simuler un télescope spacial :"
+ti[35]="Autres outils disponibles :"
+ti[36]="Conseils :"
+ti[37]="Laissez un message :"
+ti[38]="Merci à :"
+
+var historia=[]
+historia[0]="Une des premières lunettes fabriquée par Galilée en 1610"
+historia[1]="Une autre lunette fabriquée par Galilée entre 1609 et 1610"
+historia[2]="Lunette avec laquelle Christiaan Huygens découvre Titan en 1655"
+historia[3]="Le réflecteur que Newton presenta à la Royal Society en 1672"
+historia[4]="Réflecteur avec lequel Herschel découvre Uranus en 1781"
+historia[5]="Lunette de Fraunhofer à l observatoire Dorpat(Russie) mis en service en 1826"
+historia[6]="Réflecteurs de William Parsons du Château Birr(Irlande) mis en service en 1845, surnommé le Léviathan"
+historia[7]="Lunette de Clark de l observatoire Lick (mont Hamilton, Californie) mis en service en 1870"
+historia[8]="Lunette de Hale de l'observatoire Yerkes(lac Geneva, Wisconsin) mis en service en 1897"
+historia[9]="L observatoire Subaru à Hawaï, mis en service en 1999"
+historia[10]="L observatoire du Mont Wilson utilisé par Edwin Powell Hubble dans les années 1920, surnomé Hooker"
+historia[11]="L observatoire du Mont Palomar, mis en service en 1948 (nommé Hale)"
+historia[12]="Le télescope spacial Hubble lancé le 24 avril 1990"
+historia[13]="Le télescope spacial Chandra lancé le 23 juillet 1999"
+historia[14]="Le télescope spacial Spitzer lancé le 25 aout 2003"
+historia[15]="Le télescope spacial James Webb (JWST)"
+
+var matos=[]
+matos[0]="Meade ETX-70 70mm de diamètre, 350mm de focale"
+matos[1]="Meade ETX-80 80mm de diamètre, 400mm de focale"
+matos[2]="Meade ETX-90 90mm de diamètre, 1250mm de focale"
+matos[3]="Meade ETX-105 105mm de diamètre, 1470mm de focale"
+matos[4]="Meade ETX-125 125mm de diamètre, 1900mm de focale"
+matos[5]="Celestron Nexstar 4 102mm de diamètre, 1325mm de focale"
+matos[6]="Celestron Nexstar 5 125mm de diamètre, 1250mm de focale"
+matos[7]="Celestron Nexstar 6 150mm de diamètre, 1500mm de focale"
+matos[8]="Celestron Nexstar 8 203.2mm de diamètre, 2032mm de focale"
+matos[9]="Celestron C8-NGT 203.2mm de diamètre, 1000mm de focale"
+matos[10]="Celestron C9 1/4-SGT 235mm de diamètre, 2350mm de focale"
+matos[11]="Celestron C11-SGT 280mm de diamètre, 2800mm de focale"
+matos[12]="Jumelles Bresser 10X50 (lidl)"
+matos[13]="Jumelles Astrophysics 10,5x70"
+matos[14]="Jumelles Astrophysics 15x70"
+
+var fo=[]//Tableau des formules
+fo[1]="(Focale de l’objectif / Focale de l’oculaire)"
+fo[2]="(Diamètre de l’objectif / Grossissement)"
+fo[3]="(Champ apparent de l'oculaire / grossissement)"
+fo[4]="(Focale de l’objectif * Grossissement)"
+fo[5]="(Focale résultante / Focale de l’oculaire)"
+fo[6]="(Focale Barlow * (Grossissement Barlow - 1))"
+fo[7]="((Distance entre plan focal et Barlow)/Focale Barlow + 1)"
+fo[8]="(Focale résultante * taille de la planète en seconde d'arc / (180/PI*3600/1000) / Taille en micron d'un pixel du CCD)"
+fo[9]="(Largeur en micron d'un pixel du CCD * (180/PI*3600/1000) / focale résultante)"
+fo[10]="(Hauteur en micron d'un pixel du CCD * (180/PI*3600/1000) / focale résultante)"
+fo[11]="((Grossissement souhaité + 1) * Focale oculaire)"
+fo[12]="((Distance entre plan focal et oculaire/Focale oculaire)-1)"
+fo[13]="(Focale Barlow n°1/Grossissement Barlow n°1)"
+fo[14]="((Focale Barlow n°1/Grossissement Barlow n°1) + Distance entre les lentilles de Barlow)"
+fo[15]="((Distance entre la lentille 2 et son plan focal)/Focale Barlow n°2)+1)"
+fo[16]="(Grossissement Barlow n°1 * Grossissement Barlow n°2)"
+fo[17]="((Distance Barlow n°1 avec le CCD)/Focale Barlow n°1)+1)"
+fo[18]="(Distance Barlow n°1 avec le CCD/Grossissement Barlow n°1)"
+fo[19]="(Distance entre Barlow n°1 et plan focal relatif à la Barlow n°2 + Distance entre les 2 lentilles de Barlow)"
+fo[20]="(Focale résultante * taille de la planète en seconde d'arc / (180/PI*3600))"
+fo[21]="(Focale résultante * taille de la planète en seconde d'arc / (180/PI*3600/1000))"
+fo[22]="(Largeur Film en mm * (180/PI*3600) / Focale résultante)"
+fo[23]="(Hauteur Film en mm * (180/PI*3600) / Focale résultante)"
+fo[24]="(Taille en pixel de l'objet sans Barlow * Taille en micron d'un pixel du CCD)"
+fo[25]="(Taille en pixel de l'objet avec Barlow * Taille en micron d'un pixel du CCD)"
+fo[26]="((180/PI*3600/1000) * diamètre de l'objet sur le capteur sans Barlow / taille de l'objet en seconde d'arc)"
+fo[27]="((180/PI*3600/1000) * diamètre de l'objet sur le capteur avec Barlow / taille de l'objet en seconde d'arc)"
+fo[28]="(focale résultante avec Barlow / focale résultante sans Barlow)"
+fo[29]="(Distance entre la lentille de Barlow et le CCD /(grandissement effectif de la Barlow - 1))"
+fo[30]="(Diamètre de l’objectif / 2)"
+fo[31]="(Diamètre de l’objectif * 2,5)"
+fo[32]="(Diamètre de l’objectif/7)<sup>2</sup>"
+fo[33]="(120/Diamètre de l’objectif)"
+fo[34]="Racine carrée de (Diamètre de l’objectif * Grossissement)"
+fo[35]="(Diamètre de l’objectif / 6)"
+fo[36]="(2.7 + 5 * logarithme décimal du Diamètre de l’objectif)"
+//fo[37]="(Diamètre de l’objectif / Grossissement)2"
+fo[38]="(Champ visuel en degrés * 1000 / (180/pi) )"
+fo[39]="(Champ visuel en mètres / 1000 * (180/pi) )"
+fo[40]="(Champ visuel en degrés (field) * Grossissement)"
+fo[41]="(Taille du coulant en mm * (180/PI))/ focale du télescope"
+fo[42]="(Largeur en pixels du CCD * Taille en micron d'un pixel du CCD * (180/PI*3600/1000) / Focale résultante)"
+fo[43]="(Hauteur en pixels du CCD * Taille en micron d'un pixel du CCD * (180/PI*3600/1000) / Focale résultante)"
+
+var Pr=[]//phrases utilisées dans les résultats.
+Pr[0]="<LI> Le grossissement, en observation visuelle avec l'oculaire (de focale "
+Pr[1]=" mm), est de : "
+Pr[2]="<LI> La pupille de sortie, ou diamètre du faisceau lumineux sortant de l’oculaire, est de : "
+Pr[3]=" mm. "
+Pr[4]="<LI> Le champ réel obtenu est de : "
+Pr[5]=" degrés, soit : "
+Pr[6]="<LI> La focale résultante est de : "
+Pr[7]=" mm) + Barlow @"
+Pr[8]="<LI> La distance nécessaire entre l'oculaire et la lentille de Barlow de focale "
+Pr[9]=" mm, pour obtenir un grandissement de "
+Pr[10]="x, est de : "
+Pr[11]="<LI> Le grossissement obtenu avec l'oculaire de focale "
+Pr[12]=" mm, est de : "
+Pr[13]="<LI> Le facteur de grossissement obtenu en plaçant la Barlow (de focale "
+Pr[14]=" mm) à "
+Pr[15]=" mm du plan focal est de : "
+Pr[16]="<LI> Diamètre de "
+Pr[17]=" sur le CCD : "
+Pr[18]=" pixels, soit "
+Pr[19]="<LI> Echantillonnage horizontal (Largeur d'un pixel) : "
+Pr[20]="<LI> Echantillonnage vertical (Hauteur d'un pixel) : "
+Pr[21]=" soit : "
+Pr[22]="<LI> La distance nécessaire entre le capteur CCD et la lentille de Barlow de focale "
+Pr[23]=" mm, pour obtenir un grossissement de "
+Pr[24]="<LI> Le Tirage nécessaire pour grossir "
+Pr[25]=" x en projection par oculaire (de focale "
+Pr[26]=" mm) sur film ou CCD, est de : "
+Pr[27]="<LI> Le facteur de grossissement obtenu en plaçant l'oculaire (de focale "
+Pr[28]=" mm du CCD est de : "
+Pr[29]="<LI> La distance entre la lentille 1 et le plan focal relatif à la lentille 2 est de : "
+Pr[30]="<LI> Le facteur de grandissement de la lentille de Barlow n°1 est de : "
+Pr[31]="<LI> La distance entre la lentille 2 et son plan focal est de : "
+Pr[32]="<LI> Le facteur de grandissement de la lentille de Barlow n°2 est de : "
+Pr[33]="<LI> Le facteur de grandissement final est de : "
+Pr[34]="<LI> Diamètre en mm de "
+Pr[35]=" sur le film : "
+Pr[36]="<LI> Diamètre en micron de "
+Pr[37]="<LI> Le champ résultant sur le film est de : "
+Pr[38]=" en largeur,"
+Pr[39]=" en hauteur,"
+Pr[40]="<LI> La luminosité, ou quantité de lumière collectée par l'instrument par rapport à l'oeil humain, est de : "
+Pr[41]="<LI> Le grossissement maximum est de : "
+Pr[42]="<LI> Le grossissement équipupillaire, ou minimum, est de : "
+Pr[43]="<LI> Le grossissement utile ou résolvant est de : "
+Pr[44]="<LI> Le pouvoir séparateur, ou capacité de l'instrument à séparer deux points rapprochés, est de : "
+Pr[45]="<LI> Le rapport F/D de "
+Pr[46]=" destine ce télescope à "
+Pr[47]=" Plus ce rapport est petit, plus l'instrument est dit \"ouvert\"."
+Pr[48]="<LI> L'indice crépusculaire est de : "
+Pr[49]=". Plus ce résultat est grand, plus un objet est visible en lumière faible. "
+Pr[50]="Entrez une valeur : "
+Pr[51]="&nbsp; <u>Sans Barlow</u> :<P><LI> La diamètre de l'objet sur le capteur sans Barlow est de : "
+Pr[52]="<LI> La focale résultante de l'instrument sans Barlow est de : "
+Pr[53]="&nbsp; <u>Avec Barlow</u> :<P><LI> Le diamètre de l'objet sur le capteur avec Barlow est de : "
+Pr[54]="<LI> La focale résultante de l'instrument avec Barlow est de : "
+Pr[55]="&nbsp; <u>Donc</u> :<P><LI> Le grandissement effectif de la Barlow est de : "
+Pr[56]="<LI> la focale de la lentille de Barlow est de : "
+Pr[57]=" microns."
+Pr[58]=" mm. <font size=-3><i>(C'est la focale réelle de votre télescope, à utiliser dans vos futurs calculs)</font></i>"
+Pr[59]="l'observation du ciel profond et à grand champ."
+Pr[60]="l'observation planétaire et solaire."
+Pr[61]="l'observation planétaire et du ciel profond."
+Pr[62]="<LI>La magnitude limite que peut atteindre ce télescope est : "
+//Pr[63]="<li>La luminosité, ou quantité de lumière collectée par l'instrument par rapport à l'oeil humain, est de : "
+Pr[64]="<LI>Le champ de vision maximum est de : "
+Pr[65]="<LI><font color=red>Attention</font>, dans cette configuration, le champ réel est limité par le champ maximum."
+Pr[66]="<LI> Champ couvert par le CCD en largeur: "
+Pr[67]="<LI> Champ couvert par le CCD en hauteur: "
+
+var Ps=[]//phrases utilisées dans les schémas
+Ps[0]="Focale :"
+Ps[1]=" mm"
+Ps[2]="Grossissement :"
+Ps[3]="Distance : "
+Ps[4]="Focale résultante :"
+
+var t_uni=[]//singulier/pluriel
+t_uni[0]=" secondes d'arc"
+t_uni[1]=" seconde d'arc"
+t_uni[2]=" minutes d'arc"
+t_uni[3]=" minute d'arc"
+t_uni[4]=" degrés "
+t_uni[5]=" degré "
+
+var cfg_t=[]//tableau des phrases dans "configuration"
+cfg_t[1]="Caractéristiques de votre télescope :"
+cfg_t[2]="Caractéristiques de l'oculaire utilisé par défaut :"
+cfg_t[3]="Caractéristiques de vos jumelles :"
+cfg_t[4]="Caractéristiques de votre Barlow :"
+cfg_t[5]="Votre Caméra - Appareil Numérique - Webcam :"
+cfg_t[6]="Caractéristiques de l'objet observé par défaut :"
+cfg_t[7]="Préferences générales du programmes :"
+cfg_t[8]="Le tableau du schéma du montage optique est "
+cfg_t[9]="Le tableau des résultats est "
+cfg_t[10]=">visible<option value=0 "
+cfg_t[11]=">réduit</select><br>"
+cfg_t[12]="Le tableau de la simulation est "
+cfg_t[13]="Les formules utilisées sont "
+cfg_t[14]="Ordre d'affichage par défaut des 3 tableaux : "
+cfg_t[15]=">invisibles</select><br>"
+
+
+var TiS=[]//phrases utilisées les select
+TiS[0]="Focale de l’objectif : "
+TiS[1]="Diamètre de l’objectif : "
+TiS[2]="Focale de l'oculaire : "
+TiS[3]="Champ apparent de l'oculaire : "
+TiS[4]="Choix de l'objet observé : "
+TiS[5]="Diamètre de l'objet observé en seconde d'arc : "
+TiS[6]="Facteur de grandissement Barlow : "
+TiS[7]="Focale de la lentille de Barlow : "
+TiS[8]="Facteur de grandissement désiré : "
+TiS[9]="Distance entre la lentille de Barlow et le film : "
+TiS[10]="Choix de la camera : "
+TiS[11]="Distance entre la lentille de Barlow et le CCD : "
+TiS[12]="Facteur de grandissement désiré : "
+TiS[13]="Distance entre l'oculaire et le film : "
+TiS[14]="Facteur de grandissement Barlow n°1 : "
+TiS[15]="Focale de la lentille de Barlow n°1 : "
+TiS[16]="Distance entre les lentilles de Barlow : "
+TiS[17]="Focale de la lentille de Barlow n°2 : "
+TiS[18]="Distance entre la Barlow n°1 et le plan focal : "
+TiS[19]="Distance entre la lentille de Barlow et le film (CCD) : "
+TiS[20]="Taille en pixel de la planète sans Barlow : "
+TiS[21]="Taille en pixel de la planète avec Barlow : "
+TiS[22]="Diamètre de l’objectif : "
+TiS[23]="Grossissement : "
+TiS[24]="Tirage utilisé par défaut : "
+TiS[25]="Champ visuel des jumelles (Field) : "
+TiS[26]="Champ en mètre des jumelles à 1 km : "
+TiS[27]="Diamètre du coulant en mm : "
+
+var cookie_alert="Les informations ont étés enregistrées\n dans un Cookie."
+
+var aide_rac_fr="",pp='<p>'
+aide_rac_fr+="<UL class=sq>Présent en bas de chaque page, le lien "+acc_fr[17]+", permet de stocker, et partager une page et ses valeurs."+pp
+aide_rac_fr+="Les informations sont envoyées par l'url (ou adresse de la page), et vous pourrez faire varier les paramètres en modifiant simplement son url."+pp
+aide_rac_fr+="C'est la raison pour laquelle les raccourcis ne sont disponibles que si vous êtes connecté à Internet, car en local la page n'a pas d'url."+pp
+aide_rac_fr+="Les images sont également traitées différemment dans les raccourcis, le dimensionnement est plus fin, donc l'image est plus belle, et vous pourrez enfin les sauver."+pp
+aide_rac_fr+="Car CFAA crée des images dynamiques, et si vous tentez d'enregistrer une image, vous obtenez le cliché dans sa taille originale de prise de vue."+pp
+aide_rac_fr+="Donc, si vous souhaitez enregistrer exactement l'image que vous voyez dans CFAA, créez un raccourci, et enregistrez l'image présente dans celui-ci. Elle sera identique à l'image que vous voyez à l'écran."+pp
+aide_rac_fr+="Pour cela, comme pour les raccourcis, les informations sont envoyées dans l'url de l'image."+pp
+aide_rac_fr+="Ainsi vous pouvez partager une simple image, comme un raccourci. Son adresse contenant les informations nécessaires à CFAA pour recréer l'image."+pp
+aide_rac_fr+="Comme pour les raccourcis, il faut être en ligne pour les créer et donc les voir, mais l'avantage est que vous pourrez les sauver."+pp
+aide_rac_fr+="Exemple de comparaison possible :"+pp
+aide_rac_fr+="<center><table>"
+aide_rac_fr+="<TD bgcolor=white><img src=cfaa/ex_50.jpg></TD>"
+aide_rac_fr+="<TD bgcolor=white><img src=cfaa/vid.gif></TD>"
+aide_rac_fr+="<TD bgcolor=white><img src=cfaa/ex_30.jpg></TD>"
+aide_rac_fr+="</TR><tr>"
+aide_rac_fr+="<TD bgcolor=white>M42 avec un oculaire de 12 mm<br> de 50° de champ apparent.</TD>"
+aide_rac_fr+="<TD bgcolor=white><img src=cfaa/vid.gif></TD>"
+aide_rac_fr+="<TD bgcolor=white>M42 avec un oculaire de 12 mm<br> de 30° de champ apparent.</TD></table></center>"+pp
+aide_rac_fr+="Seule remarque, 'size_obj' dans l'url du raccourci ou d'une image, est soit le diamètre apparent de l'objet si c'est une planète, sinon c'est la hauteur en seconde d'arc de la photo."+pp
+aide_rac_fr+="Cette page est en cours de réalisation, merci de votre compréhension."+pp+pp
+
+var aide_local_fr=""
+aide_local_fr+="<UL class=sq>Le fichier est compressé en '.ZIP', il faut donc le décompresser avant de pouvoir l'utiliser."+pp
+aide_local_fr+="Sur le site, lors du téléchargement, ne pas cliquer sur \"exécuter\", mais sur \"enregistrer\", sinon Windows ouvre le fichier .ZIP mais ne le décompressera pas."+pp
+aide_local_fr+="Ensuite il faut le \"dézipper\" ou copier le répertoire 'cfaa' (qui contient les images) et 'CFAA.htm' dans un même répertoire, n'importe où sur le disque, cela n'a pas d'importance du moment qu'ils sont dans le même répertoire."+pp
+aide_local_fr+="Par exemple:"+pp
+aide_local_fr+=" C:\\Program Files\\CFAA\\"+pp
+aide_local_fr+="<u>Astuce:</u> Sous Windows, renommez 'CFAA.htm' en 'CFAA.hta', il s'ouvrira à la manière d'un exécutable."+pp
+aide_local_fr+="Après, vous pouvez "+acc_fr[17]+", pour cela une icone est fournie dans le même répertoire que les images."+pp
+aide_local_fr+="Cette page est en cours de réalisation, merci de votre compréhension."+pp+pp
+
+var aide1_fr=aide2_fr=aide3_fr=aide4_fr=aide5_fr=""
+var fls="</u></a>."+pp//ici car change selon skin
+var url_cfaa="http://cfaa.is.free.fr/"
+
+aide1_fr+="<UL class=sq><LI>Calculez la focale réelle de votre télescope, et de votre lentille de barlow dans la partie <a href=# onclick='Barlow(0);return false'>\"<u>Calcul de la focale de la Barlow et du télescope</u>\"</a>, et enregistrez ces valeurs dans <a href=# onclick='config();return false'>\"<u>Configuration</u>\"</a>, vos calculs seront plus précis pour la suite."+pp
+aide1_fr+="<LI>Cliquez sur \"<u>F</u>\" dans le tableau \"Résultats\" pour faire apparaitre les formules, et sur \"<u>A</u>\" pour arrondir à 1/10000."+pp
+aide1_fr+="<LI>Attention : Avant d'enregistrer une image, cliquez sur \"<u>"+acc_fr[17]+"</u>\" l'image sera mieux rendue et aux dimensions calculées."+pp
+//str+="<li>Dans les raccourcis, les images sont sauvegardables, et directement 'linkables' (avec incrustation d'infos à venir)."+pp
+aide1_fr+="<LI>Une aide pour bien utiliser les raccourcis est <a href=# onclick='Aide_rac();return false'><u>disponible ici</u></a>."+pp
+aide1_fr+="<LI>Si le Tirage n'est pas demandé pour une Barlow, on considère alors que le film, CCD, ou oculaire est placé au point focal de la lentille. (Tirage=focale Barlow)"+pp
+
+aide2_fr+="<UL class=sq><LI>Les éphémérides des planètes sont <a href=# onclick='ephemeride(0);return false'><u>disponibles ici"+fls
+aide2_fr+="<LI>Un outil de conversion inches/mm ou degrés/m/radian/... est <a href=# onclick='conversion(0);return false'><u>disponible ici"+fls
+aide2_fr+="<LI>Voir <a href=# onclick='Plan(0);return false'><u>le plan du site"+fls
+aide2_fr+="<LI><a href=# onclick='histoire();return false'>Simuler un télescope historique ou un observatoire.</a> <font color=green>(Page temporaire car non finalisée)</font>"+pp
+aide2_fr+="<LI><a href=# onclick='materiel();return false'>Simuler un télescope ou des jumelles du commerce.</a> <font color=green>(Page temporaire car non finalisée)</font>"+pp
+aide2_fr+="<LI><a href=# onclick='sim_oc_com();return false'>Simuler un oculaire du commerce.</a> <font color=green>(Page temporaire car non finalisée)</font>"+pp
+
+aide3_fr+="<UL class=sq><LI>Vous pouvez télécharger ce script, il fonctionne mieux en local, car vous n'attendrez plus les images, <A HREF=\"cfaa.zip\"><u>en cliquant ici"+fls
+aide3_fr+="<LI>Utilisez ce script en local, avec IE6, l'utilisation de la roulette de la souris est très instructive, avec Firefox la roulette n'est pas gérée."+pp
+aide3_fr+="<LI>Une aide si vous avez des difficultés pour installer CFAA en local est <a href=# onclick='Aide_local();return false'><u>disponible ici</u></a>."+pp
+aide3_fr+="<LI>Cliquez sur les titres des tableaux pour les réduire, vous y gagnerez parfois en clarté."+pp
+aide3_fr+="<LI>Vous pouvez éditer CFAA.htm (en local évidemment), j'ai laissé quelques indications pour le configurer."+pp
+aide3_fr+="<LI>Sur Iexplorer, n'oubliez pas la touche 'F11' pour agrandir l'écran, bien pratique parfois."+pp+pp
+aide3_fr+="<LI>Le code est régulièrement mis à jour, vérifiez votre version."+pp+pp
+
+aide4_fr+="<UL class=sq><LI>Si vous utilisez ce script, laissez <a href='"+url_cfaa+"messages'><u>un message</u></a>, cela me permet de connaître vos impressions, le nombre d'utilisateurs, et surtout c'est très gratifiant..."+pp
+aide4_fr+="<LI>Si vous avez des suggestions, si vous constatez une erreur, un bug, soyez indulgent et <a href='"+url_cfaa+"messages'><u>prévenez moi</u></a>.<br> Si votre caméra n'est pas dans la liste, que vous souhaitez partager des photos, si possible grand champs et haute résolution, mais pas uniquement, c'est <a href='"+url_cfaa+"messages'><u>toujours là"+fls
+//aide_fr+="<LI>Et si votre caméra n'est pas dans la liste, que vous souhaitez partager des photos, si possible grand champs et haute résolution, mais pas uniquement, c'est <a href='"+url_cfaa+"messages'><u>toujours là</u></a>"+pp+pp
+//aide_fr+=fin_tbl+pp+tbl8+tdw+titre("A venir :")+pp//white ds td
+//aide_fr+="</ul><LI> à venir plus tard:"+pp
+/*aide_fr+="<UL class=sq><li>Urgent! Convertir les resultats en base 60 pour les minutes d'arc ! 1.7 minute ça n'existe pas! "+pp
+aide_fr+="<li>Une page de mosaïque des photos de CFAA, avec les informations de prise de vues, auteur..."+pp
+//aide_fr+="</ul><LI> à venir beaucoup plus tard:"+pp
+aide_fr+="<li>Un bouton 'retour', mieux placé."+pp
+aide_fr+="<li>Corriger le bug du scrolling."+pp*/
+//aide_fr+=" Ajout d'un menu déplaçable en haut à gauche, ou dans un tableau incluant également le titre :"+pp
+//aide_fr+=" - Des boutons Accueil, config, aide, plan, dites-moi ce qui faciliterait la navigation."+pp
+//aide_fr+=" - Des boutons Anglais, Espagnol, Français. (Traducteurs : voir plus haut)."+pp
+
+aide5_fr+="<UL class=sq><LI><a target=_blank href='http://quentinc1.free.fr/'>QuentinC</a>, <a target=_blank href='http://www.poof65.com/'>poof65</a>, <a target=_blank href='http://www.clic113.net/'>gesteph</a>, <a target=_blank href='http://perso.wanadoo.fr/barbesauvage/'>barbe-sauvage</a>, <a target=_blank href='http://www.kha-tastrophe.net/'>Kha</a>, <a target=_blank href='http://www.lesgeorges.org/'>jblecanard</a>, <a target=_blank href='http://robloche.free.fr/'>robloche</a> et aux autres membres du site <a target=_blank href='http://www.toutjavascript.com/'><u>toutjavascript</u></a> pour l'aide qu'ils m'ont apportée."+pp
+aide5_fr+="<LI>Pierre-André Noirmain pour la fonction des éphémérides ou du diamètre apparent qui provient de son site : <a target=_blank href='http://perso.wanadoo.fr/noirmain/'><u>Astronomie 2005"+fls
+aide5_fr+="<LI>Etienne Bonduelle pour les photos utilisées dans ce script et qui proviennent de son site : <a target=_blank href='http://www.astrosurf.com/astrobond/'><u>astrobond"+fls
+aide5_fr+="<LI>Merci aux membres de <a target=_blank href='http://www.webastro.net/'>webastro</a> pour l'aide apportée, notamment xs_man et Bruno."+pp
+aide5_fr+="<LI>Merci à Toutiet, fabrice2 et Lilas pour avoir trouvé des bugs."+pp
+aide5_fr+="<LI>Merci également à Thierry Legault pour les formules qui viennent de son site <a target=_blank href='http://www.astrophoto.fr/'>www.astrophoto.fr</a>."+pp
+aide5_fr+="<LI><a target=_blank href='http://www.free.fr/'>Free.fr</a> pour l'hébergement gracieusement offert."+pp
+aide5_fr+="<LI><a target=_blank href='http://gunnm.is.free.fr/'><u>Mon autre site</u></a>, si vous vous intéressez à la programmation JAVA ou Javascript."+pp+pp
+
+
+//--------------------------------------------------------------------------------------
+//gère le retour vers la page précédente, merci à jblecanard
+//--------------------------------------------------------------------------------------
+var retour="Accueil()"
+var tab_history=[retour]
+function back_to(actual){
+if (actual!=tab_history[tab_history.length-2]) tab_history.push(actual)
+else tab_history.pop()
+if(tab_history[tab_history.length-2]==actual)tab_history.pop()
+retour=tab_history[tab_history.length-2]
+}
+//--------------------------------------------------------------------------------------
+// http://batraciens.net/css-astuces/skins-changement.htm
+//--------------------------------------------------------------------------------------
+function ActiveCSS(title) {
+  var i, a;//, main;
+  for(i=0; (a = document.getElementsByTagName("link")[i]); i++) {
+    if(a.getAttribute("rel").indexOf("style") != -1 && a.getAttribute("title")) {
+      a.disabled = true;
+      if(a.getAttribute("title") == title) a.disabled = false;
+    }
+  }
+}
+//--------------------------------------------------------------------------------------
+// Récupère les cookies. (Ne pas modifier)
+//--------------------------------------------------------------------------------------
+var param=voir_img+""+voir_res+""+voir_sim+""+voir_formules+""+ordre.join('')//si pas de cookies
+function cooki(){
+if(!document.cookie) return
+else{
+	eval(document.cookie.replace(new RegExp("=([^=;]*)", "g"), "=\"$1\""))//récupère tous les cookies
+	voir_img=(param.charAt(0)=="1")//decode le cookie 'param' qui contient plusieurs infos de configuration
+	voir_res=(param.charAt(1)=="1")
+	voir_sim=(param.charAt(2)=="1")
+	voir_formules=(param.charAt(3)=="1")
+	ordre=param.substring(4).split('')
+	CCD=unescape(CCD)
+	ActiveCSS(skin)
+	if (CCD=="Toucam") CCD="Toucam Pro" // à virrer + tard
+	cook=true
+	}
+}
+//--------------------------------------------------------------------------------------
+// Menu de départ (Ne pas modifier)
+//--------------------------------------------------------------------------------------
+var pp="<P>"
+var tbl=pp+"<TABLE class=MaTable><TR>"
+var tbl8="<TABLE class=MaTable width=80%><TR>"//
+var tbl2=tbl+"<TD>"
+var ad="<TD align=center colspan="
+var tdw="<TD class=blanc align=left>"
+var dtt="<TR><TD align=center>"
+var Tar="<TD align=right>"
+var ftt="</TD></TR>"
+var fin_tbl = ftt+"</TABLE>"
+var ftd="</TR><TR>"
+var fa="</a>"
+
+var logo=["Telescope","Barlow","CCD","Oculaire","Tirage","Photo","Jumelles","cfg","Aide"]//nom des images
+function pic(nb){return "<TD background='"+chemin_img+logo[nb]+".jpg' width=155px height=155px align=center valign=bottom>"}
+function spic(nb){return "<TD><img src='"+chemin_img+logo[nb]+".jpg' height=77px width=77px></TD>"}
+function apic(nb){return ftt+"<TR><TD align=center height=77px class=blanc><img src='"+chemin_img+logo[nb]+".jpg' height=77px>"+fin_tbl}
+
+function Accueil(){
+tab_history=["Accueil()"]
+var tbl_a="<TD align=center height=155px><TABLE class=MaTable width=200 STYLE=\"cursor:pointer\" onclick="//if(!cook)cooki();"
+var str=tbl
+str+=tbl_a+"choice(1);>"+dtt+acc_fr[0]+apic(3)
+str+=tbl_a+"choice(2);>"+dtt+acc_fr[1]+apic(2)
+str+=tbl_a+"choice(3);>"+dtt+acc_fr[2]+apic(5)+ftd
+str+=tbl_a+"Barlow(0);>"+dtt+acc_fr[3]+apic(1)
+str+="<TD align=center><h"+(2-FF_or_IE)+">"+acc_fr[4]+"</h"+(2-FF_or_IE)+"><h"+(4-FF_or_IE)+">"+acc_fr[5]+"</h"+(4-FF_or_IE)+">"
+str+=tbl_a+"Info(0);>"+dtt+acc_fr[6]+apic(0)+ftd
+str+=tbl_a+"choice(9);>"+dtt+acc_fr[7]+apic(6)
+str+=tbl_a+"cooki();config();>"+dtt+acc_fr[8]+apic(7)
+str+=tbl_a+"Aide();>"+dtt+acc_fr[9]+apic(8)+fin_tbl+"<P><A HREF='cfaa.zip' class=Accueil>"+acc_fr[10]+"</A><br><a href='"+url_cfaa+"messages' class=Accueil>"+acc_fr[11]+"</a>"
+screen1.innerHTML="";screen2.innerHTML=str
+}
+
+var shortcut=false//par defaut pas un raccourcis
+if (document.URL.indexOf('?')==-1) cooki(),Accueil()// Si pas un raccourcis (pas de ? dans l'adresse)
+else shortcut=true
+//if(document.cookie) cooki()// a virer ici, cookie uniquement lorsque dans sous-menu et non chargé 
+//--------------------------------------------------------------------------------------
+// Création des objets
+//--------------------------------------------------------------------------------------
+var cam_nom=[],ccd_x=[],ccd_y=[],ccd_mic_x=[],ccd_mic_y=[],type_tbl=[],champ_tbl=[],ratio=[],objets_tbl=[],nom_oc_com=[],foc_oc_com=[],champ_oc_com=[],commentaire=[]
+function capteur(nom_ccd,taille_ccd_x,taille_ccd_y,taille_pix_x,taille_pix_y) {cam_nom.push(nom_ccd);ccd_x[nom_ccd]=taille_ccd_x;ccd_y[nom_ccd]=taille_ccd_y;ccd_mic_x[nom_ccd]=taille_pix_x;ccd_mic_y[nom_ccd]=taille_pix_y}
+function photo(type,nom,comment,x,y,ch) {type_tbl[nom]=type; champ_tbl[nom]=ch; commentaire[nom]=comment; ratio[nom]=x/y; objets_tbl.push(nom)}
+function oculaire_com(nom,foc,champ){nom_oc_com.push(nom);foc_oc_com[nom]=foc;champ_oc_com[nom]=champ}
+//--------------------------------------------------------------------------------------
+// capteur("Nom de la caméra","nombre de pixels en largeur","nombre de pixels en hauteur","taille d'un pixel en micron en largeur","taille d'un pixel en micron en hauteur")
+// Pour la simulation, seule la hauteur est utilisé, pour éviter les déformations, et on utilise la hauteur des images uniquement
+//--------------------------------------------------------------------------------------
+capteur("-Webcams","0","0","0","0")
+capteur("WebCam 2/3","640","480","4.5","3.5")
+capteur("QuickCam NB","320","240","10","10")
+capteur("QuickCam VC","640","480","8.2","3.8")
+//capteur("QuickCam Pro","640","480","xxx","4.5")//---
+capteur("Toucam Pro","640","480","5.6","5.6")
+capteur("Toucam Pro N&B 1/4","640","480","5.6","5.6")//¼
+capteur("Toucam Pro N&B 1/3","640","480","7.4","7.4")
+capteur("Toucam Pro Couleur 1/3","640","480","7.4","7.4")//¹/³
+capteur("Toucam Pro N&B 1/2","640","480","9.9","9.9")//½
+capteur("Vesta Pro","640","480","5.6","5.6")
+capteur("Trisys VCam","640","480","5.6","5.6")
+capteur("QuickCam Color","640","480","7.4","7.4")
+capteur("Compro PS39","640","480","9.6","7.5")
+capteur("-Caméras","0","0","0","0")
+capteur("Meade DSI Couleur","510","492","9.6","7.5")
+capteur("Audine Kaf-0400","768","512","9","9")
+capteur("Audine Kaf-1600","1536","1024","9","9")
+capteur("Audine Kaf-3200","2184","1472","6.8","6.8")
+capteur("AP-6 Kaf-1000","1024","1024","24","24")
+capteur("AP-7 SIA502AB","512","512","24","24")
+capteur("AP-8 SIA502AB","1024","1024","24","24")
+capteur("AP-9 KAF-6300","3072","2048","9","9")
+capteur("HiSis-22 KAF-0400","768","512","9","9")
+capteur("Lynxx2000 TC-255","320","240","10","10")
+capteur("Pictor416 KAF-0400","768","512","9","9")
+capteur("Pictor1616 KAF-1600","1536","1024","9","9")
+capteur("MX516c ICX055CK","500","290","12.6","9.8")
+capteur("MX916 ICX083AL","752","582","11.6","11.6")
+capteur("SBIG ST-4 TC-211","192","165","16","13.75")
+capteur("SBIG ST-5 TC-255","324","243","10","10")
+capteur("SBIG ST-7 KAF-0400","768","512","9","9")
+capteur("SBIG ST-7XME KAF-0402ME","765","510","9","9")
+capteur("SBIG ST-8XME KAF-1603ME","1530","1020","9","9")
+capteur("SBIG ST-9XE KAF-0261E","512","512","20","20")
+capteur("SBIG ST-10XME KAF-3200ME","2184","1472","6.8","6.8")
+capteur("SBIG ST-2000XM KAF-3200ME","1600","1200","7.4","7.4")
+capteur("Artemis-254","510","492","9.6","7.5")
+capteur("Artemis-255","500","582","9.8","6.3")
+capteur("Artemis-424","659","494","7.4","7.4")
+capteur("Artemis-429","752","582","8.6","8.3")
+capteur("Artemis-285","1392","1040","6.45","6.45")
+capteur("Artemis-11002CM","4008","2672","9","9")
+capteur("-Appareils numériques","0","0","0","0")
+capteur("CANON 400D","3888","2592","5.7","5.7")
+capteur("CANON 350D","3456","2304","6.4","6.4")
+capteur("CANON 300D","3072","2048","7.38","7.38")
+capteur("CANON 30D","3504","2336","6.42","6.42")
+capteur("CANON 20D","3504","2336","6.42","6.42")
+capteur("CANON 10D","3072","2048","7.38","7.38")
+capteur("CANON 5D","4368","2912","8.2","8.2")
+capteur("CANON 1D","3520","2336","8.2","8.2")
+capteur("NIKON D70","3040","2014","7.8","7.8")
+capteur("NIKON D2X","4288","2848","5.52","5.52")
+//--------------------------------------------------------------------------------------
+// photo(1 pour planète sinon 3,"nom de l'image sans le .jpg","nombre de pixels en largeur","nombre de pixels en hauteur","champs en hauteur de la photo en sec d'arc")
+//--------------------------------------------------------------------------------------
+//----liste planètes
+photo("1","Mercure","Mercure, image composite réalisée à partir des images de Mariner 10 transmises en 1974, NASA.","1","1","1")
+photo("1","Venus","Mariner 10, NASA.","1","1","1")
+photo("1","Mars","Hubble Space Telescope, NASA, J. Bell (Cornell U.) and M. Wolff (SSI)","1","1","1")
+photo("1","Jupiter","Cassini, NASA","1","1","1")
+photo("1","Saturne","Etienne Bonduelle, le 30/12/2003, Meade LX90 203mm + Barlow Televue X3 + Filtre IRB + VP-NB capteur 1/3\" ","243","103","1")//Pour Saturne, indiquer le nombre de pixels en largeur et le nombre de pixels en hauteur, pour les autres planetes mettre 1
+photo("1","Uranus","Hubble Space Telescope, NASA","1","1","1")
+photo("1","Neptune","Hubble Space Telescope, NASA","1","1","1")
+//----liste autres (le dernier paramètre est le diamètre moyen en sec d'arc)
+photo("2","Pluton","Eliot Young (SwRI) et al., NASA","1","1","0.2")
+photo("2","Lune","Etienne Bonduelle, le 07/04/2001, Mosaique Lunaire du 13eme jour, Newton 114/900 + barlow X2 + ToUcam Pro","1","1","1880")
+photo("2","Soleil","Auteur inconnu","1","1","1880")
+//----liste Messier
+//photo("3","M13","2364","1158","198.374") //besoin de créer code pour centrer image selon centre objet
+photo("3","M20","Etienne Bonduelle, le 25/06/2003, LX-90 + Reducteur 3.3 + filtre IRB + Vesta Pro modifiee longue pose.","604","455","663.541")//"313.544")
+photo("3","M42","Etienne Bonduelle, le 06/03/2003, Lunette Takahashi FS-102 + Reducteur 3.3 Meade + filtre IRB + Vesta Pro modifiee longue pose.","587","442","2680.577")//ok
+photo("3","M51","M51","700","702","1800")
+
+
+var Back="<INPUT type=button value=\""+but[0]+"\" onclick="
+var Calc=">"+EE+"<INPUT type=button value=\""+but[1]+"\" onclick="
+var td_back=ftt+"<TR><TD align=center colspan=2>"+Back
+var td_back_u=ftt+"<TR><TD align=center colspan=1><INPUT type=button value=\""+but[2]+"\" onclick=\"window.location.href='"+url_cfaa+"'\""//dans le raccourci.
+td_back_u+=">"+EE+"<INPUT type=button value=\""+but[6]+"\" onclick="
+
+//création des tableaux utilisés dans les selects (menu déroulant)
+var Foc_tbl=[] ; for (i=10;i<=4000;i+=10) {if (i>100) i+=90; Foc_tbl.push(i) }//rempli Foc_tbl de 10 à 4000 (de 100en100)
+var Foc_oc_tbl= [65,60,56,55,52,50,42,41,40,36,35,34,33,32,31,30,28,27,26,25,24.8,24,22,21,20,19,18,17,16,15,14,13.8,13,12.5,12.4,12,11,10.5,10,9.7,9,8.8,8.6,8,7.5,7,6.7,6.4,6,5.7,5.5,5,4.8,4.7,4,3.6,3.5,3,2.8,2.5,2]
+var x_tbl=[];for (i=1;i<=20;i+=0.5) x_tbl.push(i) //rempli x_tbl de 1 à 15 tout les 0.5
+var tail_obj_tbl= ["0.06 (Pluton mini)","0.11 (Pluton max)",1,2,"2.2 (Neptune mini)","2.4 (Neptune max)",3,"3.3 (Uranus mini)","3.5 (Mars mini)",4,"4.1 (Uranus max)","4.5 (Mercure mini)",5,6,7,8,9,"10 (Vénus mini)",11,12,"13 (Mercure max)",14,"14.5 (Saturne mini)",15,16,17,18,19,20,"20.1 (Saturne max)",21,22,23,24,25,"25.1 (Mars max)",26,27,28,29,"29.8 (Jupiter mini)",30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,"49 (Jupiter max)",50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,"66 (Vénus max)",67,68,69,70,71,72,73,74,75,76,77,78,79,80,"1740 (Lune min)","1920 (Soleil)","1980 (Lune max)"]
+var degre_tbl=[] ; for (i=30;i<=90;i++) degre_tbl.push(i)
+var degre_champ_tbl=[90,84,82,80,75,72,70,68,65,60,58,55,52,50,49,48,47,45,44,42,40,30]
+var degre_metre_tbl=[] ; for (i=60;i<=150;i++) {degre_metre_tbl.push(i) }//rempli degre_metre_tbl de 60 à 150
+var milli_tbl=[] ; for (i=10;i<=250;i+=10) milli_tbl.push(i)
+for (i=300;i<=1000;i+=100) milli_tbl.push(i)
+var tab_zoom=[1/15,1/14,1/13,1/12,1/11,1/10,1/9,1/8,1/7,1/6,1/5,1/4,1/3,1/2,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+var tab_quot=["1:15","1:14","1:13","1:12","1:11","1:10","1:9","1:8","1:7","1:6","1:5","1:4","1:3","1:2","1:1","2:1","3:1","4:1", "5:1","6:1","7:1","8:1","9:1","10:1","11:1","12:1","13:1","14:1","15:1"]
+var coulant_tab=[24.5 , 27 , 31.75 , 50 , 50.8 , 81.28 , 101.6]
+
+var url_fct="<a class=accueil target=_blank href='"+url_cfaa+"?fct=" //début du raccourci.
+var net=acc_fr[17]+"</a><br><br>" //fin du raccourci.
+
+var mm=E+"mm."+E
+var mt=E+"m."+EE+EE
+var deg=E+"°"+EE+EE+EE
+var vid=EE+EE+EE+EE+E
+var sec=E+'"'+EE+EE+EE//seconde d'arc
+var Xx=E+"x"+EE+EE+EE
+var pix=E+"px"+EE+EE//pixel
+
+//--------------------------------------------------------------------------------------
+// Création objet "selects"
+//--------------------------------------------------------------------------------------
+function Sel(sel_name,num_titre,sel_unite,sel_cell){//nom du select,phrase devant le select,unité,tableau//num_titre=phrase dans TiS=[]
+this.name=sel_name; this.title=TiS[num_titre]; this.unit=sel_unite; this.cell=sel_cell;}
+var Box_Foc_tel=new Sel("Box_Foc_tel",0,mm,Foc_tbl)//0
+var Box_Diam_prim=new Sel("Box_Diam_prim",1,mm,milli_tbl)
+var Box_Coulant=new Sel("Box_Coulant",27,mm,coulant_tab)
+var Box_Foc_oc=new Sel("Box_Foc_oc",2,mm,Foc_oc_tbl)
+var Box_champ_oc=new Sel("Box_champ_oc",3,deg,degre_champ_tbl)//degre_tbl)
+var Box_obj=new Sel("Box_obj",4,vid,objets_tbl)
+var Box_size_obj=new Sel("Box_size_obj",5,sec,tail_obj_tbl)//5
+var Box_x_Bar=new Sel("Box_x_Bar",6,Xx,x_tbl)
+var Box_Foc_Bar=new Sel("Box_Foc_Bar",7,mm,milli_tbl)
+var Box_x_res=new Sel("Box_x_res",8,Xx,x_tbl)
+var Box_Tirage=	new Sel("Box_Tirage",9,mm,milli_tbl)
+var Box_CCD=new Sel("Box_CCD",10,vid,cam_nom)//10
+var Box_Tirage=new Sel("Box_Tirage",11,mm,milli_tbl)
+var Box_x_res=new Sel("Box_x_res",12,Xx,x_tbl)
+var Box_Tirage=new Sel("Box_Tirage",13,mm,milli_tbl)
+var Box_x_Bar=new Sel("Box_x_Bar",14,Xx,x_tbl)
+var Box_Foc_Bar=new Sel("Box_Foc_Bar",15,mm,milli_tbl)
+var Box_Bar_2_Bar=new Sel("Box_Bar_2_Bar",16,mm,milli_tbl)//16
+var Box_Foc_Bar2=new Sel("Box_Foc_Bar2",17,mm,milli_tbl)
+var Box_Tirage=	new Sel("Box_Tirage",18,mm,milli_tbl)
+var Box_Tiragef=new Sel("Box_Tiragef",19,mm,milli_tbl)//<---------19
+var Box_taille_sans_Bar=new Sel("Box_taille_sans_Bar",20,pix,milli_tbl)
+var Box_taille_avec_Bar=new Sel("Box_taille_avec_Bar",21,pix,milli_tbl)
+var Box_diam_jum=new Sel("Box_diam_jum",22,mm,milli_tbl)
+var Box_x_jum=new Sel("Box_x_jum",23,Xx,x_tbl)
+var Box_field_jum=new Sel("Box_field_jum",25,deg,Foc_oc_tbl)
+var Box_champ_jum=new Sel("Box_champ_jum",26,mt,degre_champ_tbl)
+var Box_Tirage=	new Sel("Box_Tirage",24,mm,degre_metre_tbl)
+
+//--------------------------------------------------------------------------------------
+// Conversion si nécessaire+ajoute le type
+//--------------------------------------------------------------------------------------
+// Arrondi à 'n' décimal et vire les '0' inutiles, merci à QuentinC http://quentinc1.free.fr 
+function round(val,n){n=arrondi?4:n;return Math.round(val*Math.pow(10,n))/Math.pow(10,n)}
+//Transforme les secondes d'arc en minutes d'arc si nécessaire+ajoute le type
+function sec_to_min(val,n){
+var result= red(round(val,n))+t_uni[0]
+if (val<2) result= red(round(val,n))+t_uni[1]
+if (val>=60){result= red(round((val/60),n))+t_uni[2]
+if ((val/60)<2) result= red(round((val/60),n))+t_uni[3]}
+return result}
+// Transforme les secondes d'arc en degrés+ajoute le type
+function sec_to_deg(val,n){return (val/3600<2)?red(round(val/3600,n))+t_uni[4]:red(round(val/3600,n))+t_uni[5]}
+
+// Transforme les degrés en secondes d'arc+ajoute le type
+function deg_to_sec(val,n){
+var result= red(round(val*3600,n))+t_uni[0]
+if (val*3600<2) result= red(round(val*3600,n))+t_uni[1]
+if (val*3600>=60){result= red(round((val*60),n))+t_uni[2]
+if ((val*60)<2) result= red(round((val*60),n))+t_uni[3]}
+return result}
+//--------------------------------------------------------------------------------------
+// Création des selects
+//--------------------------------------------------------------------------------------
+function TriNumerique(a,b){ 
+a=parseFloat(a),b=parseFloat(b)
+if (a<b) return -1 
+else if (a>b) return 1
+else return 0} 
+	
+var maintenant=chg_type=chg_astre=false
+var ancien_type=type_tbl[obj]
+var ancien_astre=obj
+
+function build_s(x,nb,val){
+if (x==3) return "<TD><input type=hidden name="+nb.name+"></select><UL class=sq><LI>"+nb.title+red(val)+nb.unit+ftt //si url est un raccourcis
+var specif=char1=""
+var vis=(nb.name=="Box_size_obj" && type_tbl[obj]=="3") ? "<div style=\"position:absolute;visibility:hidden;\">" : ""
+if (nb.name=="Box_obj" && type_tbl[obj]!=3) specif="<input type=button value=\""+but[((type_tbl[obj]=="1")?3:4)]+"\" onclick=maintenant=true;"+fct+"(1,this.form);>"+nb.unit//(øØ moyen)
+else if(nb.unit!=vid) specif=vis+"ou spécifier :<input class=formfond onKeyPress=\"return keyCheck(event, this)\" type=text size=5 name="+nb.name+"_txt onchange="+fct+"(2,this.form);>"+nb.unit+"</div>"
+var str="<TR>"+Tar+vis+nb.title+"<SELECT name="+nb.name+" onchange="+fct+"(1,this.form);><OPTION>NC</OPTION>"
+var tab=nb.cell
+var flag=false
+for(i in tab) if(tab[i]==val) {flag=true;break}
+if(!flag) {tab.push(val);tab.sort(TriNumerique)}
+for(i in tab) {
+if (nb.name=="Box_obj"){
+if(i%2==0){char1=" class=sel_gris"}
+else {char1=''}
+}
+var vfirst=''+tab[i];
+if (vfirst.substring(0,1)=="-") str+="<optgroup label='--------"+tab[i]+"---------'>"
+else str+="<OPTION "+((tab[i]==val)?sd:"")+char1+">"+tab[i]+"</OPTION>"
+}
+return str+="</SELECT>"+nb.unit+"</div></TD>"+Tar+specif+ftt}
+//--------------------------------------------------------------------------------------
+// Récuperations des valeurs entrées par l'utilisateur
+//--------------------------------------------------------------------------------------
+function recup_val(form){
+if (!form)return
+else{
+var my_select=document.getElementsByTagName('select')
+var my_input=document.getElementsByTagName('input')
+for(s=0;s<my_select.length;s++){
+var ms=my_select[s]
+if (ms.name.replace('Box_','')=="obj"){chg_type=(type_tbl[ms.options[ms.selectedIndex].text]!=ancien_type)?true:false,ancien_type=type_tbl[ms.options[ms.selectedIndex].text]
+chg_astre=(ms.options[ms.selectedIndex].text!=ancien_astre)?true:false,ancien_astre=ms.options[ms.selectedIndex].text}
+	if(isNaN(parseFloat(ms.options[ms.selectedIndex].text))) eval(ms.name.replace('Box_','')+"='"+(ms.options[ms.selectedIndex].text+"'"))//si pas de lettre la var devient la var du select
+	else eval(ms.name.replace('Box_','')+"='"+parseFloat(ms.options[ms.selectedIndex].text)+"'")//sinon la var devient la var du select sans les lettres
+for(i=0;i<my_input.length;i++){
+	var mi=my_input[i]
+	if (mi.value!='' && eval(ms.name)==eval(mi.name.replace('_txt',''))){//si champ 'specifier' existe et même nom qu'un select et est rempli
+	eval(mi.name.replace('Box_','').replace('_txt','')+"='"+parseFloat(mi.value)+"'")//la var devient la var du champ "specifier"
+	eval(ms.options[ms.selectedIndex].text=parseFloat(mi.value))//le select prend la valeur du "specifier"
+	//ici ! si nouvelle valeur, ajouter et trier tableau des selects
+	mi.value="";}//vide le champ 'specifier'
+	}}
+if(form.Box_size_obj){	//type_astre(obj)//cas à part pour le choix des objets, à faire: condition pour l'integrer à la boucle plus haut.
+var fsize=form.Box_size_obj.options[form.Box_size_obj.selectedIndex].text
+	if(type_tbl[obj]=="3") fsize=size_obj=champ_tbl[obj]//messier
+	if(type_tbl[obj]=="2" && (chg_astre || maintenant)) fsize=size_obj=champ_tbl[obj]//autres// && maintenant
+	if(type_tbl[obj]=="1" && (chg_astre || maintenant)) fsize=size_obj=calculer(obj)//plantete// && maintenant
+	form.Box_size_obj.options[form.Box_size_obj.selectedIndex].text=fsize
+	maintenant=false}}}
+//--------------------------------------------------------------------------------------
+// Verification des entrées clavier (ne laisse passer que : chiffres, point, et le -)
+//--------------------------------------------------------------------------------------
+function keyCheck(eventObj,obj){
+var keyCode=FF_or_IE?eventObj.which:eventObj.keyCode
+if(keyCode==46 && obj.value.indexOf(".")>0)return false//attention,accepte les ://if(keyCode==46)if(obj.value.indexOf(".")>0)return false//1 seul point//if(keyCode==46 && obj.value.indexOf(".")>0)return false
+if((keyCode<48||keyCode>58) && keyCode!=46 && keyCode!=45)return false // Allow only integers and decimal points
+return true}//on peux cumuller les 2 if
+
+//si l'objet par defaut du cookie est une planète, sinon regarde sa taille dans le tableau
+var size_obj=(type_tbl[obj]=="1")?calculer(obj):champ_tbl[obj]
+
+//si raccourcis, interpretation de l'url
+if (shortcut==1){
+eval(document.location.search.substring(1).split("&").join("; ").replace(/%20/g, ' ').replace(new RegExp("=([^=;]*)", "g"), "=\"$1\"").replace(new RegExp("=\"([0-9]+(\\.[0-9]+){0,1})\"", "g"), "=$1")),eval(fct+"(3)")
+ActiveCSS(skin)//active la skin du raccourcis
+}
+//--------------------------------------------------------------------------------------
+// Affichage choix de la formule (lorsque plusieurs possibilités)
+//--------------------------------------------------------------------------------------
+// Affichage des sous-menus CCD, OCULAIRE, PHOTO
+function page(col,type,fct,titre,pic1,pic2,pic3,pic4){
+var stri=pp+"<TABLE class=MaTable STYLE=\"cursor:pointer\" onclick="+fct+"<TR>"+ad+col+">"+ti[titre]+ftd+spic(0)
+if (col==3) stri+=spic(pic1)
+if (col==4) stri+=spic(pic1)+spic(pic2)
+if (col==5) stri+=spic(pic1)+spic(pic2)+spic(pic3)
+if (col==6) stri+=spic(pic1)+spic(pic2)+spic(pic3)+spic(pic4)
+return stri+spic(type)+fin_tbl
+}
+
+//création choix formule optique
+function sel_form_sf(notitre,titre1,titre2,choix1,choix2,tabimg){
+var end_sel=fin_tbl+tbl2+"<UL class=sq><LI><A HREF=# onclick='"+choix1+"(0)"+rf+ti[titre1]+fa+pp+"<LI><A HREF=# onclick='"+choix2+"(0)"+rf+ti[titre2]+fa+fin_tbl//+pp+Back+retour+">"
+if(tabimg[0]==6) return titre(ti[notitre])+tbl+"<TD align=center>"+ti[notitre]+"<TR>"+pic(tabimg[0])+end_sel
+else return titre(ti[notitre])+tbl+ad+"4>"+ti[notitre]+ftd+pic(tabimg[0])+pic(tabimg[1])+pic(tabimg[2])+pic(tabimg[3])+end_sel
+}
+//choix formule optique
+function choice(nb){
+back_to("choice("+nb+")")
+var str=tbl8+"<TD align=center class=sombre>"+titre(ti[26])
+if 		(nb=='1')str+=page(2,3,"to(0);>",17) + page(3,3,"tbo(0);>",16,1) + page(4,3,"choice(6);>",18,1,4)// Affichages choix OCULAIRE
+else if	(nb=='2')str+=page(2,2,"tc(0);>",5) + page(3,2,"tbc(0);>",19,1) + page(4,2,"choice(4);>",20,1,4) + page(4,2,"choice(5);>",21,3,4) + page(5,2,"tbtbc(0);>",7,1,4,1) + page(6,2,"tbtbtc(0);>",8,1,4,1,4)// Affichages choix CCD
+else if	(nb=='3')str+=page(2,5,"tp(0);>",9) + page(4,5,"choice(7);>",22,1,4) + page(4,5,"choice(8);>",23,3,4)// Affichages choix PHOTO
+else if	(nb=='4')str=sel_form_sf(20,1,2,"tbtc","tbtc2",[0,1,4,2])
+else if	(nb=='5')str=sel_form_sf(21,3,4,"totc","totc2",[0,3,4,2])
+else if	(nb=='6')str=sel_form_sf(18,3,4,"tbto","tbto2",[0,1,4,3])
+else if	(nb=='7')str=sel_form_sf(22,1,2,"tbtp","tbtp2",[0,1,4,5])
+else if	(nb=='8')str=sel_form_sf(23,3,4,"totp2","totp",[0,3,4,5])
+else if	(nb=='9')str=sel_form_sf(13,24,25,"Jumelles","Jumelles_m",[6,0,0,0])
+screen1.innerHTML='';
+screen2.innerHTML=str+pp+Back+retour+";>"+pp+fin_tbl
+}
+//--------------------------------------------------------------------------------------
+// Fonction up_down pour ordre des tableaux de résultats
+//--------------------------------------------------------------------------------------
+function ordre_actuel(){
+for(i in ordre){
+if		(ordre[i]=='1') ord1=i
+else if	(ordre[i]=='2') ord2=i
+else if	(ordre[i]=='3') ord3=i}
+}
+
+function arrow(tb,num,x){//si x=0 ne rien afficher
+if (!x || fct=='Barlow' || fct=='Info' || fct=='conversion') return ""
+var up="<img STYLE=\"cursor:pointer\" onclick='up_down("+tb+",\"up\");"+fct+"(1,this.form);return false' src=\""+chemin_img+"up.gif\" title='Remonter ce tableau'>"
+var down="<img STYLE=\"cursor:pointer\" onclick='up_down("+tb+",\"down\");"+fct+"(1,this.form);return false' src=\""+chemin_img+"down.gif\" title='Descendre ce tableau'>"
+if		(num==0) return down
+else if (num==1) return up+" "+down
+else if (num==2) return up
+}
+
+function up_down(nb,sens){
+var tmp=ordre[1]
+for(i in ordre)if(ordre[i]==nb) var pos=i
+if ((pos==0 && sens=='down') || (pos==1 && sens=='up')) {ordre[1]=ordre[0];ordre[0]=tmp}
+else if ((pos==1 && sens=='down') || (pos==2 && sens=='up')) {ordre[1]=ordre[2];ordre[2]=tmp}
+}
+//--------------------------------------------------------------------------------------
+// Affichage des 3 tableaux de résultats
+//--------------------------------------------------------------------------------------
+
+// Affichage tableau du schema optique
+function tab_schema(schema,img_schema,col,x){
+ordre_actuel()
+return tbl+ad+col+"><a href=# onclick='voir_img=!voir_img;"+fct+"("+((x==3)?3:x)+",this.form);return false'>"+schema+fa+"&nbsp;&nbsp;&nbsp;"+arrow(1,ord1,x)+(voir_img?img_schema:"")+fin_tbl}
+
+// Affichage tableau des résultats
+function tab_resultat(res,x){
+var str=""
+my_scroll=voir_scroll?scroll_str:"hidden"//pourquoi ici?
+if(x!=0) str=tbl2+dtt+"<A HREF=# onclick='voir_res=!voir_res;"+fct+"("+((x==3)?3:x)+",this.form);return false'>"+acc_fr[13]+"</TD>"+Tar+"<A title='Arrondi à 1/10000' HREF=# onclick='arrondi=!arrondi;"+fct+"(1,this.form);return false'><font size=-2>A"+E+"</font></a> <A title='Affiche les formules' HREF=# onclick='voir_formules=!voir_formules;"+fct+"(1,this.form);return false'><font size=-2>F"+E+"</font>"+fa+arrow(2,ord2,x)+ftt
+if(res && voir_res) str+="<TR><TD class=blanc colspan=2><UL class=sq>"+res
+return str+fin_tbl}
+
+// Affichage tableau de simulation CCD
+function simul_CCD(CCD,size_obj_en_pixel,x){var str=""
+if(!isNaN(size_obj_en_pixel) && x!=0){
+largeur=size_obj_en_pixel*ratio[obj]
+var xx=(x==3)?3:x//si racourcis, on garde le x
+str=pp+"<table class=MaTable width="+ccd_x[CCD]*tab_zoom[zoom]+"px><tr><TD align=left><img onclick='zoom++;"+fct+"("+xx+",this.form);return false' STYLE=\"cursor:pointer\" src=\""+chemin_img+"plus.gif\" border=no><img STYLE=\"cursor:pointer\" onclick='zoom--;"+fct+"("+xx+",this.form);return false' src=\""+chemin_img+"moins.gif\" border=no></TD><TD align=center><A HREF=# onclick='voir_sim=!voir_sim;"+fct+"("+xx+",this.form);return false'> "+acc_fr[15]+" ("+ccd_x[CCD]+" X "+ccd_y[CCD]+") "+tab_quot[zoom]+fa+"</TD>"+Tar+"<A HREF=# onclick='voir_scroll=!voir_scroll;"+fct+"("+xx+",this.form);return false'><img src=\""+chemin_img+"scroll.gif\" border=no height=15>"+fa+arrow(3,ord3,x)+ftt
+//faire un test en envoyant le zoom, sans la condition 
+//si raccourci(x=3) affiche une img php
+if (x==3 && voir_sim) str+="<TR><TD colspan=3><img src='sim.php?obj="+obj+"&w="+ccd_x[CCD]+"&h="+ccd_y[CCD]+"&size_obj="+Math.round(size_obj_en_pixel)+"&zoom="+tab_zoom[zoom]+"'></TD>"
+//sinon affiche imag crée en js
+else if(voir_sim) str+="<TR><TD class=noir width="+ccd_x[CCD]*tab_zoom[zoom]+"px height="+ccd_y[CCD]*tab_zoom[zoom]+"px colspan=3><div STYLE=\"width:"+ccd_x[CCD]*tab_zoom[zoom]+"px; height:"+ccd_y[CCD]*tab_zoom[zoom]+"px;overflow:"+my_scroll+";\"><img  title='"+commentaire[obj]+"' STYLE=\"position:relative;left: "+round(((ccd_x[CCD]/2)-(largeur/2))*tab_zoom[zoom],0)+";top:"+((ccd_y[CCD]/2)-(size_obj_en_pixel/2))*tab_zoom[zoom]+"\" height="+round(size_obj_en_pixel*tab_zoom[zoom],0)+"px src=\""+chemin_img+obj+".jpg\"></div></TD>"
+return str+fin_tbl+pp}
+else return ""}//a verifier
+
+// Affichage tableau de simulation photo
+function simul_PHOTO(size_obj_en_mm,x){var str=""
+var photo_x=360//deplacer dans config
+var photo_y=240
+if(!isNaN(size_obj_en_mm) && x!=0){
+var xx=(x==3)?3:x//si racourcis, on garde le x
+largeur=size_obj_en_mm*ratio[obj]
+str=pp+"<table class=MaTable width="+photo_x*tab_zoom[zoom_p]+"><tr><TD align=left><img STYLE=\"cursor:pointer\" onclick='zoom_p++;"+fct+"("+xx+",this.form);return false' src=\""+chemin_img+"plus.gif\" border=no><img STYLE=\"cursor:pointer\" onclick='zoom_p--;"+fct+"("+xx+",this.form);return false' src=\""+chemin_img+"moins.gif\" border=no></TD><TD align=center><A HREF=# onclick='voir_sim=!voir_sim;"+fct+"("+xx+",this.form);return false'> "+acc_fr[16]+" (24mm X 36mm) "+round(10*tab_zoom[zoom_p],1)+"pixels=1mm</A></TD>"+Tar+"<img onclick='voir_scroll=!voir_scroll;"+fct+"("+xx+",this.form);return false' STYLE=\"cursor:pointer\" src=\""+chemin_img+"scroll.gif\" border=no height=15>"+arrow(3,ord3,x)+ftt
+//si raccourci(x=3) affiche une img php
+if (x==3 && voir_sim) str+="<TR><TD colspan=3><img src='sim.php?obj="+obj+"&w="+photo_x+"&h="+photo_y+"&size_obj="+Math.round(size_obj_en_mm*10)+"&zoom="+tab_zoom[zoom_p]+"'></TD>"
+//sinon affiche imag crée en js
+else if(voir_sim) str+="<TR><TD class=noir width="+photo_x*tab_zoom[zoom_p]+"px height="+photo_y*tab_zoom[zoom_p]+"px colspan=3><div STYLE=\"width:"+photo_x*tab_zoom[zoom_p]+"px; height:"+photo_y*tab_zoom[zoom_p]+"px;overflow:"+my_scroll+";\"><img title='"+commentaire[obj]+"' STYLE=\"position:relative;left: "+((photo_x/2)-(largeur*10/2))*tab_zoom[zoom_p]+";top:"+((photo_y/2)-(size_obj_en_mm*10/2))*tab_zoom[zoom_p]+"\" height="+round((size_obj_en_mm*10)*tab_zoom[zoom_p],0)+"px src=\""+chemin_img+obj+".jpg\"></div></TD>"
+return str+fin_tbl+pp}
+else return ""}
+
+// Affichage tableau de simulation Oculaire
+function simul_OCULAIRE(Champ_reel_seconde_arc,size_obj,x,champ_oc,lim_coulant){var str=""
+var oc="oc.gif"
+if(lim_coulant && (Champ_reel_seconde_arc/3600)>lim_coulant){Champ_reel_seconde_arc=lim_coulant*3600; oc="ocr.gif"}//impose la limite de champ due au coulant
+var cadre_x=320
+if(!isNaN(size_obj) && x!=0){
+var xx=(x==3)?3:x//si racourcis, on garde le x
+var size_obj_en_pixel = round(cadre_x/(Champ_reel_seconde_arc/size_obj),0)
+largeur=size_obj_en_pixel*ratio[obj]
+var quota_champ=1/(32/champ_oc)//((Champ_reel_seconde_arc/3600)*1.5)
+str=pp+"<table class=MaTable width="+cadre_x*tab_zoom[zoom_o]*quota_champ+"><tr><TD align=left><img STYLE=\"cursor:pointer\" onclick='zoom_o++;"+fct+"("+xx+",this.form);return false' src=\""+chemin_img+"plus.gif\" border=no><img onclick='zoom_o--;"+fct+"("+xx+",this.form);return false' STYLE=\"cursor:pointer\" src=\""+chemin_img+"moins.gif\" border=no></TD><TD align=center width="+cadre_x*tab_zoom[zoom_o]*quota_champ+"><A HREF=# onclick='voir_sim=!voir_sim;"+fct+"("+xx+",this.form);return false'> "+acc_fr[14]+" "+tab_quot[zoom_o]+fa+"</TD>"+Tar+"<img onclick='voir_scroll=!voir_scroll;"+fct+"("+xx+",this.form);return false' STYLE=\"cursor:pointer\" src=\""+chemin_img+"scroll.gif\" border=no height=15>"+arrow(3,ord3,x)+ftt
+//si raccourci(x=3) affiche une img php
+if (x==3 && voir_sim)str+="<TR><TD colspan=3><img src='sim.php?type=O&obj="+obj+"&w="+cadre_x+"&h="+cadre_x+"&size_obj="+Math.round(size_obj_en_pixel)+"&zoom="+tab_zoom[zoom_o]*quota_champ+"'></TD>"
+//sinon affiche imag crée en js
+else if(voir_sim){str+="<TR><TD class=noir colspan=3><div STYLE=\"width:"+cadre_x*tab_zoom[zoom_o]*quota_champ+"px; height:"+cadre_x*tab_zoom[zoom_o]*quota_champ+"px;overflow:"+my_scroll+";\">"
+str+="<img STYLE=\"position:relative;left: "+((cadre_x/2)-(largeur/2))*tab_zoom[zoom_o]*quota_champ+";top:"+((cadre_x/2)-(size_obj_en_pixel/2))*tab_zoom[zoom_o]*quota_champ+"\" height="+round(size_obj_en_pixel*tab_zoom[zoom_o]*quota_champ,0)+"px src=\""+chemin_img+obj+".jpg\">"
+str+="<img  title='"+commentaire[obj]+"' STYLE=\"position:relative;left: 0;top: "+(-size_obj_en_pixel*tab_zoom[zoom_o]*quota_champ)+";\" width="+cadre_x*tab_zoom[zoom_o]*quota_champ+"px height="+cadre_x*tab_zoom[zoom_o]*quota_champ+"px src="+chemin_img+oc+"></div>"
+}
+return str+fin_tbl+pp}
+else return ""}
+
+//-----------------------------------------------------
+//Télescope+Oculaire
+//-----------------------------------------------------
+var tit//test
+function to(x,form){
+if (tit)title=tit//test
+var str=res=FD_inf=foc_oc_inf=""
+fct="to"
+back_to("to()")
+if (shortcut!=true) recup_val(form);// si ce n'est pas un raccourci
+// Affiche le titre et les boites de selections
+if(x!=1 || chg_type){ // x=1 si besoin de (re)dessiner les selects (seulement si on change de type d'objet a observer)
+	if(!title || x==0)title=ti[0]
+	str= build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Diam_prim,Diam_prim)+build_s(x,Box_Foc_oc,Foc_oc)+build_s(x,Box_champ_oc,champ_oc)+build_s(x,Box_Coulant,Coulant)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3)?td_back_u+fct+"(0)>":td_back+retour+Calc+fct+"(1,this.form)>"//si racourcis: td_back_u+fct+"(0)>"///// et si pas rac:td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl // Affiche le tableau des selects
+	}
+//-----------calcul des résultats-----------
+if(x!=0){ // x==0 lors 1ere arrivée sur la page//x=1,sauf arrivée=0, raccourcis=3
+var gross_r = Math.abs(Foc_tel / Foc_oc) // calcul du grossissement obtenu
+var pup_r = (Diam_prim / gross_r) // calcul de la pupille de sortie
+var Champ_reel = champ_oc / gross_r
+var Champ_reel_seconde_arc = (Champ_reel * 3600)
+// Affiche les infos dispo dans les cases 
+if(!isNaN(Diam_prim) && !isNaN(Foc_tel)) FD_inf = Diam_prim+"/"+Foc_tel
+if(!isNaN(Foc_oc)) foc_oc_inf = Ps[0]+Foc_oc+Ps[1]
+if(!isNaN(Coulant) && !isNaN(Foc_tel))var lim_coulant=(Coulant*(180/Math.PI))/Foc_tel
+// Affiche les résultats dispo dans table de resultat
+if(!isNaN(gross_r))res+=Pr[0]+Foc_oc+Pr[1]+red(round(gross_r,0))+" x. "+Formule(1)+pp
+if(!isNaN(pup_r))res+=Pr[2]+red(round(pup_r,1))+Pr[3]+Formule(2)+pp
+if(!isNaN(lim_coulant)) res+=Pr[64]+red(round(lim_coulant,2))+Pr[5]+deg_to_sec(lim_coulant,2)+Formule(41)+pp//calcul du champ de vision maximum
+if(!isNaN(Champ_reel))res+=Pr[4]+red(round(Champ_reel,2))+Pr[5]+deg_to_sec(Champ_reel,2)+Formule(3)
+if(Champ_reel>lim_coulant)res+=pp+Pr[65]
+}
+//-----------fin calcul des résultats-----------
+var img_schema=ftd+pic(0)+FD_inf+pic(3)+foc_oc_inf
+tmp[1]=tab_schema(ti[17],img_schema,2,x)// Affiche table du schéma de la formule
+tmp[2]=tab_resultat(res,x)// Affiche table des résultats
+tmp[3]=simul_OCULAIRE(Champ_reel_seconde_arc,size_obj,x,champ_oc,lim_coulant)// Affiche table simulation Oculaire
+my_url=(x!=0 && x!=3)?pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&Diam_prim="+Diam_prim+"&Foc_oc="+Foc_oc+"&champ_oc="+champ_oc+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+//my_url=(x==3) ? pp+url_img+fct+"&Foc_tel="+Foc_tel+"&Diam_prim="+Diam_prim+"&Foc_oc="+Foc_oc+"&champ_oc="+champ_oc+"&obj="+obj+"&size_obj="+size_obj+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+Barlow+Oculaire
+//-----------------------------------------------------
+function tbo(x,form){
+var str=res=FD_inf=G_Bar_inf=foc_oc_inf=""
+fct="tbo"
+back_to("tbo()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[1]
+	str = build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Diam_prim,Diam_prim)+build_s(x,Box_x_Bar,x_Bar)+build_s(x,Box_Foc_oc,Foc_oc)+build_s(x,Box_champ_oc,champ_oc)+build_s(x,Box_Coulant,Coulant)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var gross_r = Math.abs((Foc_tel / Foc_oc) * x_Bar) //calcul du grossissement avec une Barlow
+var Champ_reel = champ_oc / gross_r
+var Champ_reel_seconde_arc = (Champ_reel * 3600)
+var foc_result_r = (Foc_tel * x_Bar)//calcul de la focale résultante
+var pup_r = (Diam_prim / gross_r)//calcul de la pupille de sortie
+if(!isNaN(Diam_prim) && !isNaN(Foc_tel)) FD_inf = Diam_prim+"/"+Foc_tel
+if(!isNaN(x_Bar)) G_Bar_inf = Ps[2]+x_Bar+"x"
+if(!isNaN(Foc_oc)) foc_oc_inf = Ps[0]+Foc_oc+Ps[1]
+if(!isNaN(Coulant) && !isNaN(foc_result_r))var lim_coulant=(Coulant*(180/Math.PI))/foc_result_r//ou Foc_tel?//lim coulant
+if(!isNaN(foc_result_r)) res+=Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)+pp
+if(!isNaN(gross_r)) res+=Pr[0]+Foc_oc+Pr[7]+x_Bar+Pr[10]+red(round(gross_r,0))+" x. "+Formule(5)+pp
+if(!isNaN(pup_r)) res+=Pr[2]+red(round(pup_r,1))+Pr[3]+Formule(2)+pp
+if(!isNaN(lim_coulant)) res+=Pr[64]+red(round(lim_coulant,2))+Pr[5]+deg_to_sec(lim_coulant,2)+Formule(41)+pp//calcul du champ de vision maximum
+if(!isNaN(Champ_reel))res+=Pr[4]+red(round(Champ_reel,2))+Pr[5]+deg_to_sec(Champ_reel,2)+Formule(3)}
+if(Champ_reel>lim_coulant)res+=pp+Pr[65]//lim coulant
+var img_schema=ftd+pic(0)+FD_inf+"</TD>"+pic(1)+G_Bar_inf+"</TD>"+pic(3)+foc_oc_inf
+tmp[1]=tab_schema(ti[16],img_schema,3,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_OCULAIRE(Champ_reel_seconde_arc,size_obj,x,champ_oc)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&Diam_prim="+Diam_prim+"&x_Bar="+x_Bar+"&Foc_oc="+Foc_oc+"&champ_oc="+champ_oc+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+Barlow+Tirage+Oculaire
+//-----------------------------------------------------
+function tbto(x,form){
+var str=res=foca_tel_inf=foca_bar_inf=dist_bar_inf=gross_souh_inf=""
+fct="tbto"
+back_to("tbto()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[1]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Diam_prim,Diam_prim)+build_s(x,Box_Foc_Bar,Foc_Bar)+build_s(x,Box_x_res,x_res)+build_s(x,Box_Foc_oc,Foc_oc)+build_s(x,Box_champ_oc,champ_oc)+build_s(x,Box_Coulant,Coulant)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var dist_r = (Foc_Bar * (x_res - 1))//calcul du Tirage nécessaire avec une Barlow
+var foc_result_r = (Foc_tel * x_res)//calcul de la focale résultante
+var gross_r = Math.abs(foc_result_r/Foc_oc)
+var Champ_reel = champ_oc / gross_r
+var Champ_reel_seconde_arc = (Champ_reel * 3600)
+var pup_r = Diam_prim/gross_r
+if(!isNaN(Foc_tel)) foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(Foc_Bar)) foca_bar_inf = Ps[0]+Foc_Bar+Ps[1]
+if(!isNaN(dist_r)) dist_bar_inf = Ps[3]+round(dist_r,1)+Ps[1]
+if(!isNaN(x_res)) gross_souh_inf = "<b>"+x_res+"x</b>"
+if(!isNaN(Coulant) && !isNaN(foc_result_r))var lim_coulant=(Coulant*(180/Math.PI))/foc_result_r//ou Foc_tel?//lim coulant
+if(!isNaN(dist_r)) res+=Pr[8]+Foc_Bar+Pr[9]+x_res+Pr[10]+red(round(dist_r,1))+Pr[3]+Formule(6)+pp
+if(!isNaN(gross_r)) res+=Pr[11]+Foc_oc+Pr[12]+red(round(gross_r,0))+" x. "+Formule(5)+pp
+if(!isNaN(foc_result_r)) res+=Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)+pp// à verifier !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+if(!isNaN(pup_r))res+=Pr[2]+red(round(pup_r,1))+Pr[3]+Formule(2)+pp
+if(!isNaN(lim_coulant)) res+=Pr[64]+red(round(lim_coulant,2))+Pr[5]+deg_to_sec(lim_coulant,2)+Formule(41)+pp//calcul du champ de vision maximum
+if(!isNaN(Champ_reel))res+=Pr[4]+red(round(Champ_reel,2))+Pr[5]+deg_to_sec(Champ_reel,2)+Formule(3)}
+if(Champ_reel>lim_coulant)res+=pp+Pr[65]//lim coulant
+var img_schema=ftd+pic(0)+foca_tel_inf+"</TD>"+pic(1)+foca_bar_inf+"</TD>"+pic(4)+dist_bar_inf+"</TD>"+pic(3)+gross_souh_inf
+tmp[1]=tab_schema(ti[18],img_schema,4,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_OCULAIRE(Champ_reel_seconde_arc,size_obj,x,champ_oc)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&Diam_prim="+Diam_prim+"&Foc_Bar="+Foc_Bar+"&x_res="+x_res+"&Foc_oc="+Foc_oc+"&champ_oc="+champ_oc+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+Barlow+Tirage+Oculaire
+//-----------------------------------------------------
+function tbto2(x,form){
+var str=res=foca_tel_inf=foca_bar_inf=dist_bar_inf=gross_inf=""
+fct="tbto2"
+back_to("tbto2()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[2]
+	str = build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Diam_prim,Diam_prim)+build_s(x,Box_Foc_Bar,Foc_Bar)+build_s(x,Box_Tirage,Tirage)+build_s(x,Box_Foc_oc,Foc_oc)+build_s(x,Box_champ_oc,champ_oc)+build_s(x,Box_Coulant,Coulant)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var gross_r = (Tirage/Foc_Bar+1)//calcul facteur de grossissement obtenu
+var foc_result_r = (Foc_tel * gross_r)//calcul de la focale résultante
+var gross_r = Math.abs(foc_result_r/Foc_oc)
+var Champ_reel = champ_oc / gross_r
+var Champ_reel_seconde_arc = (Champ_reel * 3600)
+var pup_r = Diam_prim/gross_r
+if(!isNaN(Coulant) && !isNaN(foc_result_r))var lim_coulant=(Coulant*(180/Math.PI))/foc_result_r//ou Foc_tel?//lim coulant
+if(!isNaN(Foc_tel))foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(Foc_Bar)) foca_bar_inf = Ps[0]+Foc_Bar+Ps[1]
+if(!isNaN(Tirage)) dist_bar_inf = Ps[3]+Tirage+Ps[1]
+if(!isNaN(gross_r)) gross_inf = "<b>"+round(gross_r,0)+" x</b>"
+if(!isNaN(gross_r)) res+=Pr[13]+Foc_Bar+Pr[14]+Tirage+Pr[15]+red(round(gross_r,0))+" x. "+Formule(7)+pp//idem
+if(!isNaN(foc_result_r)) res+=Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)+pp
+//if(!isNaN(gross_r)) res+=Pr[11]+Foc_oc+Pr[12]+red(round(gross_r,0))+" x. "+Formule(5)+pp//idem
+if(!isNaN(pup_r))res+=Pr[2]+red(round(pup_r,1))+Pr[3]+Formule(2)+pp
+if(!isNaN(lim_coulant)) res+=Pr[64]+red(round(lim_coulant,2))+Pr[5]+deg_to_sec(lim_coulant,2)+Formule(41)+pp//calcul du champ de vision maximum
+if(!isNaN(Champ_reel))res+=Pr[4]+red(round(Champ_reel,2))+Pr[5]+deg_to_sec(Champ_reel,2)+Formule(3)}
+if(Champ_reel>lim_coulant)res+=pp+Pr[65]//lim coulant
+var img_schema=ftd+pic(0)+foca_tel_inf+"</TD>"+pic(1)+foca_bar_inf+"</TD>"+pic(4)+dist_bar_inf+"</TD>"+pic(3)+gross_inf
+tmp[1]=tab_schema(ti[18],img_schema,4,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_OCULAIRE(Champ_reel_seconde_arc,size_obj,x,champ_oc)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&Diam_prim="+Diam_prim+"&Foc_Bar="+Foc_Bar+"&Tirage="+Tirage+"&Foc_oc="+Foc_oc+"&champ_oc="+champ_oc+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+CCD
+//-----------------------------------------------------
+function tc(x,form){
+var str=res=FD_inf=""
+fct="tc"
+back_to("tc()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[5]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_CCD,CCD)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var size_obj_en_mm = (Foc_tel * size_obj / rad_sec)//calcul de la taille de la planète sur le CCD
+var size_obj_en_pixel = size_obj_en_mm / ccd_mic_y[CCD]*1000
+var taille_pix_arc_y = (ccd_mic_y[CCD]*rad_sec_m/Foc_tel)
+var taille_pix_arc_x = (ccd_mic_x[CCD]*rad_sec_m/Foc_tel)
+var champ_CCD_arc_x = ccd_x[CCD]*ccd_mic_x[CCD]*rad_sec_m/Foc_tel
+var champ_CCD_arc_y = ccd_y[CCD]*ccd_mic_y[CCD]*rad_sec_m/Foc_tel
+if(!isNaN(Diam_prim) && !isNaN(Foc_tel)) FD_inf = Diam_prim+"/"+Foc_tel
+if(!isNaN(size_obj_en_pixel)) res+=Pr[16]+obj+Pr[17]+red(round(size_obj_en_pixel,0))+Pr[18]+red(round(size_obj_en_mm,2))+Pr[3]+Formule(8)+pp
+if(!isNaN(taille_pix_arc_x)) res+=Pr[19]+sec_to_min(taille_pix_arc_x,2)+Formule(9)+pp
+if(!isNaN(taille_pix_arc_y)) res+=Pr[20]+sec_to_min(taille_pix_arc_y,2)+Formule(10)+pp
+if(!isNaN(champ_CCD_arc_x)) res+=Pr[66]+sec_to_min(champ_CCD_arc_x,2)+Pr[21]+sec_to_deg(champ_CCD_arc_x,2)+Formule(42)+pp
+if(!isNaN(champ_CCD_arc_y)) res+=Pr[67]+sec_to_min(champ_CCD_arc_y,2)+Pr[21]+sec_to_deg(champ_CCD_arc_y,2)+Formule(43)}
+var img_schema=ftd+pic(0)+FD_inf+"</TD>"+pic(2)+CCD
+tmp[1]=tab_schema(ti[5],img_schema,2,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_CCD(CCD,size_obj_en_pixel,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&CCD="+CCD+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+Barlow+CCD
+//-----------------------------------------------------
+function tbc(x,form){
+var str=res=foca_tel_inf=G_Bar_inf=foc_res_inf=""
+fct="tbc"
+back_to("tbc()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[6]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_x_Bar,x_Bar)+build_s(x,Box_CCD,CCD)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var foc_result_r = (Foc_tel * x_Bar)//calcul de la focale résultante
+var size_obj_en_mm = (foc_result_r * size_obj / rad_sec)//calcul de la taille de la planète sur le CCD
+var size_obj_en_pixel = size_obj_en_mm / ccd_mic_y[CCD]*1000
+var taille_pix_arc_y = (ccd_mic_y[CCD]*rad_sec_m/foc_result_r)
+var taille_pix_arc_x = (ccd_mic_x[CCD]*rad_sec_m/foc_result_r)
+var champ_CCD_arc_y = ccd_y[CCD]*ccd_mic_y[CCD]*rad_sec_m/foc_result_r
+var champ_CCD_arc_x = ccd_x[CCD]*ccd_mic_x[CCD]*rad_sec_m/foc_result_r
+if(!isNaN(Foc_tel)) foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(x_Bar))G_Bar_inf = Ps[2]+x_Bar+" x"
+if(!isNaN(foc_result_r)) 	foc_res_inf = Ps[4]+round(foc_result_r,1)+Ps[1]
+if(!isNaN(foc_result_r)) res+=Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)+pp
+if(!isNaN(size_obj_en_pixel)) res+=Pr[16]+obj+Pr[17]+red(round(size_obj_en_pixel,0))+Pr[18]+red(round(size_obj_en_mm,2))+Pr[3]+Formule(8)+pp
+if(!isNaN(taille_pix_arc_x)) res+=Pr[19]+sec_to_min(taille_pix_arc_x,2)+Formule(9)+pp
+if(!isNaN(taille_pix_arc_y)) res+=Pr[20]+sec_to_min(taille_pix_arc_y,2)+Formule(10)+pp
+if(!isNaN(champ_CCD_arc_x)) res+=Pr[66]+sec_to_min(champ_CCD_arc_x,2)+Pr[21]+sec_to_deg(champ_CCD_arc_x,2)+Formule(42)+pp
+if(!isNaN(champ_CCD_arc_y)) res+=Pr[67]+sec_to_min(champ_CCD_arc_y,2)+Pr[21]+sec_to_deg(champ_CCD_arc_y,2)+Formule(43)}
+var img_schema=ftd+pic(0)+foca_tel_inf+"</TD>"+pic(1)+G_Bar_inf+"</TD>"+pic(2)+foc_res_inf
+tmp[1]=tab_schema(ti[19],img_schema,3,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_CCD(CCD,size_obj_en_pixel,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&x_Bar="+x_Bar+"&CCD="+CCD+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+Barlow+Tirage+CCD
+//-----------------------------------------------------
+function tbtc(x,form){
+var str=res=foca_tel_inf=foca_bar_inf=dist_bar_inf=gross_souh_inf=""
+fct="tbtc"
+back_to("tbtc()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[1]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Foc_Bar,Foc_Bar)+build_s(x,Box_x_res,x_res)+build_s(x,Box_CCD,CCD)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var dist_r = (Foc_Bar * (x_res - 1))//calcul du Tirage nécessaire avec une Barlow
+var foc_result_r = (Foc_tel * x_res)//calcul de la focale résultante
+var size_obj_en_mm = (foc_result_r * size_obj / rad_sec)//calcul de la taille de la planète sur le CCD
+var size_obj_en_pixel = size_obj_en_mm / ccd_mic_y[CCD]*1000
+var taille_pix_arc_y = (ccd_mic_y[CCD]*rad_sec_m/foc_result_r)
+var taille_pix_arc_x = (ccd_mic_x[CCD]*rad_sec_m/foc_result_r)
+var champ_CCD_arc_y = ccd_y[CCD]*ccd_mic_y[CCD]*rad_sec_m/foc_result_r
+var champ_CCD_arc_x = ccd_x[CCD]*ccd_mic_x[CCD]*rad_sec_m/foc_result_r
+if(!isNaN(Foc_tel)) foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(Foc_Bar)) foca_bar_inf = Ps[0]+Foc_Bar+Ps[1]
+if(!isNaN(dist_r)) dist_bar_inf = Ps[3]+round(dist_r,1)+Ps[1]
+if(!isNaN(x_res)) gross_souh_inf = "<b>"+x_res+" x</b>"
+if(!isNaN(dist_r)) res+=Pr[22]+Foc_Bar+Pr[23]+x_res+Pr[10]+red(round(dist_r,1))+Pr[3]+Formule(6)+pp
+if(!isNaN(foc_result_r)) res+=Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)+pp
+if(!isNaN(size_obj_en_pixel)) res+=Pr[16]+obj+Pr[17]+red(round(size_obj_en_pixel,0))+Pr[18]+red(round(size_obj_en_mm,2))+Pr[3]+Formule(8)+pp
+if(!isNaN(taille_pix_arc_x)) res+=Pr[19]+sec_to_min(taille_pix_arc_x,2)+Formule(9)+pp
+if(!isNaN(taille_pix_arc_y)) res+=Pr[20]+sec_to_min(taille_pix_arc_y,2)+Formule(10)+pp
+if(!isNaN(champ_CCD_arc_x)) res+=Pr[66]+sec_to_min(champ_CCD_arc_x,2)+Pr[21]+sec_to_deg(champ_CCD_arc_x,2)+Formule(42)+pp
+if(!isNaN(champ_CCD_arc_y)) res+=Pr[67]+sec_to_min(champ_CCD_arc_y,2)+Pr[21]+sec_to_deg(champ_CCD_arc_y,2)+Formule(43)}
+var img_schema=ftd+pic(0)+foca_tel_inf+"</TD>"+pic(1)+foca_bar_inf+"</TD>"+pic(4)+dist_bar_inf+"</TD>"+pic(2)+gross_souh_inf
+tmp[1]=tab_schema(ti[19],img_schema,4,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_CCD(CCD,size_obj_en_pixel,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&x_res="+x_res+"&CCD="+CCD+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+Barlow+Tirage+CCD
+//-----------------------------------------------------
+function tbtc2(x,form){
+var str=res=foca_tel_inf=foca_bar_inf=dist_bar_inf=gross_inf=""
+fct="tbtc2"
+back_to("tbtc2()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[2]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Foc_Bar,Foc_Bar)+build_s(x,Box_Tirage,Tirage)+build_s(x,Box_CCD,CCD)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var gross_r = (Tirage/Foc_Bar+1)//calcul facteur de grossissement obtenu
+var foc_result_r = (Foc_tel * gross_r)//calcul de la focale résultante
+var size_obj_en_mm = (foc_result_r * size_obj / rad_sec)//calcul de la taille de la planète sur le CCD
+var size_obj_en_pixel = size_obj_en_mm / ccd_mic_y[CCD]*1000
+var taille_pix_arc_y = (ccd_mic_y[CCD]*rad_sec_m/foc_result_r)
+var taille_pix_arc_x = (ccd_mic_x[CCD]*rad_sec_m/foc_result_r)
+var champ_CCD_arc_y = ccd_y[CCD]*ccd_mic_y[CCD]*rad_sec_m/foc_result_r
+var champ_CCD_arc_x = ccd_x[CCD]*ccd_mic_x[CCD]*rad_sec_m/foc_result_r
+if(!isNaN(Foc_tel))foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(Foc_Bar)) foca_bar_inf = Ps[0]+Foc_Bar+Ps[1]
+if(!isNaN(Tirage)) dist_bar_inf = Ps[3]+Tirage+Ps[1]
+if(!isNaN(gross_r)) gross_inf = "<b>"+round(gross_r,1)+" x</b>"
+if(!isNaN(gross_r)) res+=Pr[13]+Foc_Bar+Pr[14]+Tirage+Pr[15]+red(round(gross_r,1))+" x. "+Formule(7)+pp
+if(!isNaN(foc_result_r)) res+=Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)+pp
+if(!isNaN(size_obj_en_pixel)) res+=Pr[16]+obj+Pr[17]+red(round(size_obj_en_pixel,0))+Pr[18]+red(round(size_obj_en_mm,2))+Pr[3]+Formule(8)+pp
+if(!isNaN(taille_pix_arc_x)) res+=Pr[19]+sec_to_min(taille_pix_arc_x,2)+Formule(9)+pp
+if(!isNaN(taille_pix_arc_y)) res+=Pr[20]+sec_to_min(taille_pix_arc_y,2)+Formule(10)+pp
+if(!isNaN(champ_CCD_arc_x)) res+=Pr[66]+sec_to_min(champ_CCD_arc_x,2)+Pr[21]+sec_to_deg(champ_CCD_arc_x,2)+Formule(42)+pp
+if(!isNaN(champ_CCD_arc_y)) res+=Pr[67]+sec_to_min(champ_CCD_arc_y,2)+Pr[21]+sec_to_deg(champ_CCD_arc_y,2)+Formule(43)}
+var img_schema=ftd+pic(0)+foca_tel_inf+"</TD>"+pic(1)+foca_bar_inf+"</TD>"+pic(4)+dist_bar_inf+"</TD>"+pic(2)+gross_inf
+tmp[1]=tab_schema(ti[20],img_schema,4,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_CCD(CCD,size_obj_en_pixel,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&Foc_Bar="+Foc_Bar+"&Tirage="+Tirage+"&CCD="+CCD+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+Oculaire+Tirage+CCD
+//-----------------------------------------------------
+function totc(x,form){
+var str=res=foca_tel_inf=foc_oc_inf=dista_oc_inf=gross_souh_inf=""
+fct="totc"
+back_to("totc()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[3]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Foc_oc,Foc_oc)+build_s(x,Box_x_res,x_res)+build_s(x,Box_CCD,CCD)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var Tirage_r = (parseFloat(x_res)+1) * Foc_oc//calcul du Tirage nécessaire avec Oculaire//parseFloat(x_res) évite le bug decouvert par Albéric(xs_man sur webastro)
+var foc_result_r = (Foc_tel * x_res)//calcul de la focale resultante
+var size_obj_en_mm = (foc_result_r * size_obj / rad_sec)//calcul de la taille de la planète sur le CCD
+var size_obj_en_pixel = size_obj_en_mm / ccd_mic_y[CCD]*1000
+var taille_pix_arc_y = (ccd_mic_y[CCD]*rad_sec_m/foc_result_r)
+var taille_pix_arc_x = (ccd_mic_x[CCD]*rad_sec_m/foc_result_r)
+//var taille_pix_arc = (size_obj/size_obj_en_pixel)//taille de l'objet en seconde d'arc/taille de l'objet en pixel
+var champ_CCD_arc_y = ccd_y[CCD]*ccd_mic_y[CCD]*rad_sec_m/foc_result_r
+var champ_CCD_arc_x = ccd_x[CCD]*ccd_mic_x[CCD]*rad_sec_m/foc_result_r
+if(!isNaN(Foc_tel)) foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(Foc_oc)) foc_oc_inf = Ps[0]+Foc_oc+Ps[1]
+if(!isNaN(Tirage_r)) dista_oc_inf = Ps[3]+round(Tirage_r,1)+Ps[1]
+if(!isNaN(x_res)) gross_souh_inf = "<b>"+x_res+" x</b>"
+if(!isNaN(Tirage_r)) res+=Pr[24]+x_res+Pr[25]+Foc_oc+Pr[26]+red(round(Tirage_r,1))+Pr[3]+Formule(11)+pp
+if(!isNaN(foc_result_r)) res+=Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)+pp
+if(!isNaN(size_obj_en_pixel)) res+=Pr[16]+obj+Pr[17]+red(round(size_obj_en_pixel,0))+Pr[18]+red(round(size_obj_en_mm,2))+Pr[3]+Formule(8)+pp
+if(!isNaN(taille_pix_arc_x)) res+=Pr[19]+sec_to_min(taille_pix_arc_x,2)+Formule(9)+pp
+if(!isNaN(taille_pix_arc_y)) res+=Pr[20]+sec_to_min(taille_pix_arc_y,2)+Formule(10)+pp
+if(!isNaN(champ_CCD_arc_x)) res+=Pr[66]+sec_to_min(champ_CCD_arc_x,2)+Pr[21]+sec_to_deg(champ_CCD_arc_x,2)+Formule(42)+pp
+if(!isNaN(champ_CCD_arc_y)) res+=Pr[67]+sec_to_min(champ_CCD_arc_y,2)+Pr[21]+sec_to_deg(champ_CCD_arc_y,2)+Formule(43)}
+var img_schema=ftd+pic(0)+foca_tel_inf+"</TD>"+pic(3)+foc_oc_inf+"</TD>"+pic(4)+dista_oc_inf+"</TD>"+pic(2)+gross_souh_inf
+tmp[1]=tab_schema(ti[21],img_schema,4,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_CCD(CCD,size_obj_en_pixel,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&Foc_oc="+Foc_oc+"&x_res="+x_res+"&CCD="+CCD+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+Oculaire+Tirage+CCD
+//-----------------------------------------------------
+function totc2(x,form){
+var str=res=foca_tel_inf=foc_oc_inf=dista_oc_inf=gross_inf=""
+fct="totc2"
+back_to("totc2()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[4]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Foc_oc,Foc_oc)+build_s(x,Box_Tirage,Tirage)+build_s(x,Box_CCD,CCD)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var gross_r = ((Tirage/Foc_oc)-1)//calcul du grossissement d'une Barlow
+var foc_result_r = (Foc_tel * gross_r)//calcul de la focale resultante
+var size_obj_en_mm = (foc_result_r * size_obj / rad_sec)//calcul de la taille de la planète sur le CCD
+var size_obj_en_pixel = size_obj_en_mm / ccd_mic_y[CCD]*1000
+var taille_pix_arc_y = (ccd_mic_y[CCD]*rad_sec_m/foc_result_r)
+var taille_pix_arc_x = (ccd_mic_x[CCD]*rad_sec_m/foc_result_r)
+var champ_CCD_arc_x = ccd_x[CCD]*ccd_mic_x[CCD]*rad_sec_m/foc_result_r
+var champ_CCD_arc_y = ccd_y[CCD]*ccd_mic_y[CCD]*rad_sec_m/foc_result_r
+if(!isNaN(Foc_tel)) foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(Foc_oc)) foc_oc_inf = Ps[0]+Foc_oc+Ps[1]
+if(!isNaN(Tirage)) dista_oc_inf = Ps[3]+Tirage+Ps[1]
+if(!isNaN(gross_r)) gross_inf = "<B>"+round(gross_r,1)+" x</b>"
+if(!isNaN(gross_r)) res+=Pr[27]+Foc_oc+Pr[14]+Tirage+Pr[28]+red(round(gross_r,1))+" x. "+Formule(12)+pp
+if(!isNaN(foc_result_r))res+=Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)+pp
+if(!isNaN(size_obj_en_pixel)) res+=Pr[16]+obj+Pr[17]+red(round(size_obj_en_pixel,0))+Pr[18]+red(round(size_obj_en_mm,2))+Pr[3]+Formule(8)+pp
+if(!isNaN(taille_pix_arc_x)) res+=Pr[19]+sec_to_min(taille_pix_arc_x,2)+Formule(9)+pp
+if(!isNaN(taille_pix_arc_y)) res+=Pr[20]+sec_to_min(taille_pix_arc_y,2)+Formule(10)+pp
+if(!isNaN(champ_CCD_arc_x)) res+=Pr[66]+sec_to_min(champ_CCD_arc_x,2)+Pr[21]+sec_to_deg(champ_CCD_arc_x,2)+Formule(42)+pp
+if(!isNaN(champ_CCD_arc_y)) res+=Pr[67]+sec_to_min(champ_CCD_arc_y,2)+Pr[21]+sec_to_deg(champ_CCD_arc_y,2)+Formule(43)}
+var img_schema=ftd+pic(0)+foca_tel_inf+"</TD>"+pic(3)+foc_oc_inf+"</TD>"+pic(4)+dista_oc_inf+"</TD>"+pic(2)+gross_inf
+tmp[1]=tab_schema(ti[21],img_schema,4,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_CCD(CCD,size_obj_en_pixel,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&Foc_oc="+Foc_oc+"&Tirage="+Tirage+"&CCD="+CCD+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+// Télescope+Barlow+Tirage+Barlow+CCD
+//-----------------------------------------------------
+function tbtbc(x,form){
+var str=res=foca_tel_inf=bar1_inf=bar2_inf=GF_inf=Dista_2_Bar_inf=""
+fct="tbtbc"
+back_to("tbtbc()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[7]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_x_Bar,x_Bar)+build_s(x,Box_Foc_Bar,Foc_Bar)+build_s(x,Box_Bar_2_Bar,Bar_2_Bar)+build_s(x,Box_Foc_Bar2,Foc_Bar2)+build_s(x,Box_CCD,CCD)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var G1 = x_Bar//calcul du grossissement de la Barlow1
+var D1 = Foc_Bar/G1//calcul de la distance entre la Barlow1 et le plan focal relatif à la Barlow2
+var D2 = (D1+parseFloat(Bar_2_Bar))//calcul distance entre Barlow2 et son plan focal
+var G2 = (D2/Foc_Bar2)+1//calcul du grandissement de la lentille 2
+var GF = G1*G2//calcul du grandissement final
+var foc_result_r=(Foc_tel * GF)//calcul de la focale résultante
+var size_obj_en_mm = (foc_result_r * size_obj / rad_sec)//calcul de la taille de la planète sur le CCD
+var size_obj_en_pixel = size_obj_en_mm / ccd_mic_y[CCD]*1000
+var taille_pix_arc_y = (ccd_mic_y[CCD]*rad_sec_m/foc_result_r)
+var taille_pix_arc_x = (ccd_mic_x[CCD]*rad_sec_m/foc_result_r)
+var champ_CCD_arc_y = ccd_y[CCD]*ccd_mic_y[CCD]*rad_sec_m/foc_result_r
+var champ_CCD_arc_x = ccd_x[CCD]*ccd_mic_x[CCD]*rad_sec_m/foc_result_r
+if(!isNaN(Foc_tel))foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(G1)) bar1_inf=" : <br>"+round(G1,1)+" x"
+if(!isNaN(G2)) bar2_inf=" : <br>"+round(G2,1)+" x"
+if(!isNaN(GF)) GF_inf=Ps[2]+round(GF,1)+" x"
+if(!isNaN(Bar_2_Bar)) Dista_2_Bar_inf=Ps[3]+Bar_2_Bar+Ps[1]
+if(!isNaN(D1)) res+=Pr[29]+red(round(D1,1))+Pr[3]+Formule(13)+pp
+if(!isNaN(D2)) res+=Pr[31]+red(round(D2,1))+Pr[3]+Formule(14)+pp
+if(!isNaN(G2)) res+=Pr[32]+red(round(G2,1))+" x. "+Formule(15)+pp
+if(!isNaN(GF)) res+=Pr[33]+red(round(GF,1))+" x. "+Formule(16)+pp
+if(!isNaN(foc_result_r))res+=Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)+pp
+if(!isNaN(size_obj_en_pixel)) res+=Pr[16]+obj+Pr[17]+red(round(size_obj_en_pixel,0))+Pr[18]+red(round(size_obj_en_mm,2))+Pr[3]+Formule(8)+pp
+if(!isNaN(taille_pix_arc_x)) res+=Pr[19]+sec_to_min(taille_pix_arc_x,2)+Formule(9)+pp
+if(!isNaN(taille_pix_arc_y)) res+=Pr[20]+sec_to_min(taille_pix_arc_y,2)+Formule(10)+pp
+if(!isNaN(champ_CCD_arc_x)) res+=Pr[66]+sec_to_min(champ_CCD_arc_x,2)+Pr[21]+sec_to_deg(champ_CCD_arc_x,2)+Formule(42)+pp
+if(!isNaN(champ_CCD_arc_y)) res+=Pr[67]+sec_to_min(champ_CCD_arc_y,2)+Pr[21]+sec_to_deg(champ_CCD_arc_y,2)+Formule(43)}
+var img_schema=ftd+pic(0)+foca_tel_inf+"</TD>"+pic(1)+"Barlow n°2"+bar2_inf+"</TD>"+pic(4)+Dista_2_Bar_inf+"</TD>"+pic(1)+" Barlow n°1"+bar1_inf+"</TD>"+pic(2)+GF_inf
+tmp[1]=tab_schema(ti[7],img_schema,5,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_CCD(CCD,size_obj_en_pixel,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&x_Bar="+x_Bar+"&Foc_Bar="+Foc_Bar+"&Bar_2_Bar="+Bar_2_Bar+"&Foc_Bar2="+Foc_Bar2+"&CCD="+CCD+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+Barlow+Tirage+Barlow+Tirage+CCD
+//-----------------------------------------------------
+function tbtbtc(x,form){
+var str=res=foca_tel_inf=bar1_inf=bar2_inf=dist_bar1_ccd=GF_inf=Dista_2_Bar_inf=""
+fct="tbtbtc"
+back_to("tbtbtc()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[8]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Foc_Bar,Foc_Bar)+build_s(x,Box_Tirage,Tirage)+build_s(x,Box_Bar_2_Bar,Bar_2_Bar)+build_s(x,Box_Foc_Bar2,Foc_Bar2)+build_s(x,Box_CCD,CCD)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var G1 = (Tirage/Foc_Bar)+1//calcul du grossissement de la Barlow1
+var D1 = Tirage/G1//calcul de la distance entre la Barlow1 et le plan focal relatif à la Barlow2
+var D2 = D1+Bar_2_Bar//calcul distance entre Barlow2 et son plan focal
+var G2 = (D2/Foc_Bar2)+1//calcul du grandissement de la lentille 2
+var GF = G1*G2//calcul du grandissement final
+var foc_result_r=(Foc_tel * GF)//calcul de la focale résultante
+var size_obj_en_mm = (foc_result_r * size_obj / rad_sec)//calcul de la taille de la planète sur le CCD
+var size_obj_en_pixel = size_obj_en_mm / ccd_mic_y[CCD]*1000
+var taille_pix_arc_y = (ccd_mic_y[CCD]*rad_sec_m/foc_result_r)
+var taille_pix_arc_x = (ccd_mic_x[CCD]*rad_sec_m/foc_result_r)
+var champ_CCD_arc_y = ccd_y[CCD]*ccd_mic_y[CCD]*rad_sec_m/foc_result_r
+var champ_CCD_arc_x = ccd_x[CCD]*ccd_mic_x[CCD]*rad_sec_m/foc_result_r
+if(!isNaN(Foc_tel)) foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(G1)) bar1_inf=" : <br>"+round(G1,1)+" x"
+if(!isNaN(G2)) bar2_inf=" : <br>"+round(G2,1)+" x"
+if(!isNaN(Tirage)) dist_bar1_ccd=Ps[3]+Tirage+Ps[1]
+if(!isNaN(GF)) GF_inf=Ps[2]+round(GF,1)+" x"
+if(!isNaN(Bar_2_Bar)) Dista_2_Bar_inf=Ps[3]+Bar_2_Bar+Ps[1]
+if(!isNaN(G1)) res+=Pr[30]+red(round(G1,1))+" x. "+Formule(17)+pp
+if(!isNaN(D1)) res+=Pr[29]+red(round(D1,1))+Pr[3]+Formule(18)+pp
+if(!isNaN(D2)) res+=Pr[31]+red(round(D2,1))+Pr[3]+Formule(19)+pp
+if(!isNaN(G2)) res+=Pr[32]+red(round(G2,1))+" x. "+Formule(15)+pp
+if(!isNaN(GF)) res+=Pr[33]+red(round(GF,1))+" x. "+Formule(16)+pp
+if(!isNaN(foc_result_r))res+=Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)+pp
+if(!isNaN(size_obj_en_pixel)) res+=Pr[16]+obj+Pr[17]+red(round(size_obj_en_pixel,0))+Pr[18]+red(round(size_obj_en_mm,2))+Pr[3]+Formule(8)+pp
+if(!isNaN(taille_pix_arc_x)) res+=Pr[19]+sec_to_min(taille_pix_arc_x,2)+Formule(9)+pp
+if(!isNaN(taille_pix_arc_y)) res+=Pr[20]+sec_to_min(taille_pix_arc_y,2)+Formule(10)+pp
+if(!isNaN(champ_CCD_arc_x)) res+=Pr[66]+sec_to_min(champ_CCD_arc_x,2)+Pr[21]+sec_to_deg(champ_CCD_arc_x,2)+Formule(42)+pp
+if(!isNaN(champ_CCD_arc_y)) res+=Pr[67]+sec_to_min(champ_CCD_arc_y,2)+Pr[21]+sec_to_deg(champ_CCD_arc_y,2)+Formule(43)}
+var img_schema=ftd+pic(0)+foca_tel_inf+"</TD>"+pic(1)+"Barlow n°2"+bar2_inf+"</TD>"+pic(4)+Dista_2_Bar_inf+"</TD>"+pic(1)+" Barlow n°1"+bar1_inf+"</TD>"+pic(4)+dist_bar1_ccd+"</TD>"+pic(2)+GF_inf 
+tmp[1]=tab_schema(ti[8],img_schema,6,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_CCD(CCD,size_obj_en_pixel,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&Foc_Bar="+Foc_Bar+"&Tirage="+Tirage+"&Bar_2_Bar="+Bar_2_Bar+"&Foc_Bar2="+Foc_Bar2+"&CCD="+CCD+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//--------------------------------------------------------------------------------------
+//Télescope+PHOTO
+//-----------------------------------------------------
+function tp(x,form){
+var str=res=foca_tel_inf=g_max_inf=""
+fct="tp"
+back_to("tp()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[9]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var size_obj_en_mm = (Foc_tel * size_obj / rad_sec)//calcul de la taille de la planète sur le film en mm
+var size_obj_en_micron = size_obj_en_mm*1000//calcul de la taille de la planète sur le film en µm
+var champ_resultant_x=36*rad_sec/Foc_tel
+var champ_resultant_y=24*rad_sec/Foc_tel
+if(!isNaN(Foc_tel)) foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(size_obj_en_mm)) res+=Pr[34]+obj+Pr[35]+red(round(size_obj_en_mm,2))+Pr[3]+Formule(20)+pp
+if(!isNaN(size_obj_en_micron)) res+=Pr[36]+obj+Pr[35]+red(round(size_obj_en_micron,1))+" µm. "+Formule(21)+pp
+if(!isNaN(champ_resultant_x)) res+=Pr[37]+sec_to_min(champ_resultant_x,1)+Pr[38]+Pr[21]+sec_to_deg(champ_resultant_x,2)+Formule(22)+pp
+if(!isNaN(champ_resultant_y)) res+=Pr[37]+sec_to_min(champ_resultant_y,1)+Pr[39]+Pr[21]+sec_to_deg(champ_resultant_y,2)+Formule(23)}
+var img_schema=ftd+pic(0)+foca_tel_inf+"</TD>"+pic(5) //+g_max_inf
+tmp[1]=tab_schema(ti[9],img_schema,2,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_PHOTO(size_obj_en_mm,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+Barlow+Tirage+PHOTO
+//-----------------------------------------------------
+function tbtp(x,form){
+var str=res=foca_tel_inf=foca_bar_inf=dist_bar_inf=g_max_inf=gross_inf=""
+fct="tbtp"
+back_to("tbtp()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[10]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Foc_Bar,Foc_Bar)+build_s(x,Box_Tirage,Tirage)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var gross_r = (Tirage/Foc_Bar+1)//calcul facteur de grossissement obtenu
+var foc_result_r = (Foc_tel * gross_r)//calcul de la focale résultante
+var size_obj_en_mm = (foc_result_r * size_obj / rad_sec)//calcul de la taille de la planète sur le film
+var champ_resultant_x=36*rad_sec/foc_result_r
+var champ_resultant_y=24*rad_sec/foc_result_r
+if(!isNaN(Foc_tel))foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(Foc_Bar)) foca_bar_inf = Ps[0]+Foc_Bar+Ps[1]
+if(!isNaN(Tirage)) dist_bar_inf = Ps[3]+Tirage+Ps[1]
+if(!isNaN(gross_r)) gross_inf = "<b>"+round(gross_r,1)+" x</b>"
+if(!isNaN(gross_r)) res+=Pr[13]+Foc_Bar+Pr[14]+Tirage+Pr[15]+red(round(gross_r,1))+" x. "+Formule(7)
+if(!isNaN(foc_result_r)) res+=pp+Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)
+//calcul de la taille de la planète sur le film
+size_obj_en_pixel = (foc_result_r * size_obj / rad_sec)
+if(!isNaN(size_obj_en_mm)) res+=Pr[34]+obj+Pr[35]+red(round(size_obj_en_mm,2))+Pr[3]+Formule(20)+pp
+if(!isNaN(size_obj_en_mm)) res+=Pr[36]+obj+Pr[35]+red(round(size_obj_en_mm*1000,2))+" µm. "+Formule(21)+pp
+if(!isNaN(champ_resultant_x)) res+=Pr[37]+sec_to_min(champ_resultant_x,1)+Pr[38]+Pr[21]+sec_to_deg(champ_resultant_x,2)+Formule(22)+pp
+if(!isNaN(champ_resultant_y)) res+=Pr[37]+sec_to_min(champ_resultant_y,1)+Pr[39]+Pr[21]+sec_to_deg(champ_resultant_y,2)+Formule(23)}
+var img_schema=ftd+pic(0)+foca_tel_inf+pic(1)+foca_bar_inf+"</TD>"+pic(4)+dist_bar_inf+"</TD>"+pic(5)+gross_inf
+tmp[1]=tab_schema(ti[10],img_schema,4,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_PHOTO(size_obj_en_mm,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&Foc_Bar="+Foc_Bar+"&Tirage="+Tirage+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+Barlow+Tirage+PHOTO
+//-----------------------------------------------------
+function tbtp2(x,form){
+var str=res=foca_tel_inf=foca_bar_inf=dist_bar_inf=gross_inf=""
+fct="tbtp2"
+back_to("tbtp2()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[2]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Foc_Bar,Foc_Bar)+build_s(x,Box_Tirage,Tirage)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var gross_r = (Tirage/Foc_Bar+1)//calcul facteur de grossissement obtenu
+var foc_result_r = (Foc_tel * gross_r)//calcul de la focale résultante
+var size_obj_en_mm = (foc_result_r * size_obj / rad_sec)//calcul de la taille de la planète sur le film
+var champ_resultant_x=36*rad_sec/foc_result_r
+var champ_resultant_y=24*rad_sec/foc_result_r
+if(!isNaN(Foc_tel))foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(Foc_Bar)) foca_bar_inf = Ps[0]+Foc_Bar+Ps[1]
+if(!isNaN(Tirage)) dist_bar_inf = Ps[3]+Tirage+Ps[1]
+if(!isNaN(gross_r)) gross_inf = "<b>"+round(gross_r,1)+" x</b>"
+if(!isNaN(gross_r)) res+=Pr[13]+Foc_Bar+Pr[14]+Tirage+Pr[15]+red(round(gross_r,1))+" x. "+Formule(7)+pp
+if(!isNaN(foc_result_r)) res+=Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)+pp
+if(!isNaN(size_obj_en_mm)) res+=Pr[34]+obj+Pr[35]+red(round(size_obj_en_mm,2))+Pr[3]+Formule(20)+pp
+if(!isNaN(size_obj_en_mm)) res+=Pr[36]+obj+Pr[35]+red(round(size_obj_en_mm*1000,2))+" µm. "+Formule(21)+pp
+if(!isNaN(champ_resultant_x)) res+=Pr[37]+sec_to_min(champ_resultant_x,1)+Pr[38]+Pr[21]+sec_to_deg(champ_resultant_x,2)+Formule(22)+pp
+if(!isNaN(champ_resultant_y)) res+=Pr[37]+sec_to_min(champ_resultant_y,1)+Pr[39]+Pr[21]+sec_to_deg(champ_resultant_y,2)+Formule(23)}
+var img_schema=ftd+pic(0)+foca_tel_inf+"</TD>"+pic(1)+foca_bar_inf+"</TD>"+pic(4)+dist_bar_inf+"</TD>"+pic(5)+gross_inf
+tmp[1]=tab_schema(ti[22],img_schema,4,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_PHOTO(size_obj_en_mm,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&Foc_Bar="+Foc_Bar+"&Tirage="+Tirage+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+Oculaire+Tirage+photo
+//-----------------------------------------------------
+function totp(x,form){
+var str=res=foca_tel_inf=foc_oc_inf=dista_oc_inf=gross_inf=""
+fct="totp"
+back_to("totp()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[4]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Foc_oc,Foc_oc)+build_s(x,Box_Tirage,Tirage)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var gross_r = ((Tirage/Foc_oc)-1)//calcul du grossissement d'une Barlow
+var foc_result_r = (Foc_tel * gross_r)//calcul de la focale resultante
+var size_obj_en_mm = (foc_result_r * size_obj / rad_sec)//calcul de la taille de la planète sur le CCD
+var champ_resultant_x=36*rad_sec/foc_result_r
+var champ_resultant_y=24*rad_sec/foc_result_r
+if(!isNaN(Foc_tel)) foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(Foc_oc)) foc_oc_inf = Ps[0]+Foc_oc+Ps[1]
+if(!isNaN(Tirage)) dista_oc_inf = Ps[3]+Tirage+Ps[1]
+if(!isNaN(gross_r)) gross_inf = "<B>"+round(gross_r,1)+" x</b>"
+if(!isNaN(gross_r)) res+=Pr[27]+Foc_oc+Pr[14]+Tirage+Pr[28]+red(round(gross_r,1))+" x. "+Formule(12)+pp
+if(!isNaN(foc_result_r))res+=Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)+pp
+if(!isNaN(size_obj_en_mm)) res+=Pr[34]+obj+Pr[35]+red(round(size_obj_en_mm,2))+Pr[3]+Formule(20)+pp
+if(!isNaN(size_obj_en_mm)) res+=Pr[36]+obj+Pr[35]+red(round(size_obj_en_mm*1000,2))+" µm. "+Formule(21)+pp
+if(!isNaN(champ_resultant_x)) res+=Pr[37]+sec_to_min(champ_resultant_x,1)+Pr[38]+Pr[21]+sec_to_deg(champ_resultant_x,2)+Formule(22)+pp
+if(!isNaN(champ_resultant_y)) res+=Pr[37]+sec_to_min(champ_resultant_y,1)+Pr[39]+Pr[21]+sec_to_deg(champ_resultant_y,2)+Formule(23)}
+var img_schema=ftd+pic(0)+foca_tel_inf+"</TD>"+pic(3)+foc_oc_inf+"</TD>"+pic(4)+dista_oc_inf+"</TD>"+pic(5)+gross_inf
+tmp[1]=tab_schema(ti[23],img_schema,4,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_PHOTO(size_obj_en_mm,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&Foc_oc="+Foc_oc+"&Tirage="+Tirage+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Télescope+Oculaire+Tirage+Photo
+//-----------------------------------------------------
+function totp2(x,form){
+var str=res=foca_tel_inf=foc_oc_inf=dista_oc_inf=gross_souh_inf=""
+fct="totp2"
+back_to("totp2()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[3]
+	str =build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Foc_oc,Foc_oc)+build_s(x,Box_x_res,x_res)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var Tirage_r = (parseFloat(x_res)+1) * Foc_oc//calcul du Tirage nécessaire avec Oculaire
+var foc_result_r = (Foc_tel * x_res)//calcul de la focale resultante
+var size_obj_en_mm = (foc_result_r * size_obj / rad_sec)//calcul de la taille de la planète sur le CCD
+var champ_resultant_x=36*rad_sec/foc_result_r
+var champ_resultant_y=24*rad_sec/foc_result_r
+if(!isNaN(Foc_tel)) foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(Foc_oc)) foc_oc_inf = Ps[0]+Foc_oc+Ps[1]
+if(!isNaN(Tirage_r)) dista_oc_inf = Ps[3]+round(Tirage_r,1)+Ps[1]
+if(!isNaN(x_res)) gross_souh_inf = "<b>"+x_res+" x</b>"
+if(!isNaN(Tirage_r)) res+=Pr[24]+x_res+Pr[25]+Foc_oc+Pr[26]+red(round(Tirage_r,1))+Pr[3]+Formule(11)+pp
+if(!isNaN(foc_result_r)) res+=Pr[6]+red(round(foc_result_r,1))+Pr[3]+Formule(4)+pp
+if(!isNaN(size_obj_en_mm)) res+=Pr[34]+obj+Pr[35]+red(round(size_obj_en_mm,2))+Pr[3]+Formule(20)+pp
+if(!isNaN(size_obj_en_mm)) res+=Pr[36]+obj+Pr[35]+red(round(size_obj_en_mm*1000,2))+" µm. "+Formule(21)+pp
+if(!isNaN(champ_resultant_x)) res+=Pr[37]+sec_to_min(champ_resultant_x,1)+Pr[38]+Pr[21]+sec_to_deg(champ_resultant_x,2)+Formule(22)+pp
+if(!isNaN(champ_resultant_y)) res+=Pr[37]+sec_to_min(champ_resultant_y,1)+Pr[39]+Pr[21]+sec_to_deg(champ_resultant_y,2)+Formule(23)}
+var img_schema=ftd+pic(0)+foca_tel_inf+"</TD>"+pic(3)+foc_oc_inf+"</TD>"+pic(4)+dista_oc_inf+"</TD>"+pic(5)+gross_souh_inf
+tmp[1]=tab_schema(ti[23],img_schema,4,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_PHOTO(size_obj_en_mm,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&Foc_oc="+Foc_oc+"&x_res="+x_res+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Calcul de la focale de la Barlow
+//-----------------------------------------------------
+function Barlow(x,form){
+var str=res=foca_tel_inf=g_bar_inf=foca_bar_inf=""
+fct="Barlow"
+back_to("Barlow()")
+if (x!=3) recup_val(form)
+if(x!=1){
+if(!title || x==0)title=ti[11]
+	str=build_s(x,Box_taille_sans_Bar,taille_sans_Bar)+build_s(x,Box_taille_avec_Bar,taille_avec_Bar)+build_s(x,Box_CCD,CCD)+build_s(x,Box_Tiragef,Tiragef)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}//"<br>Diamètre de l'objet faculttif, utilisé uniquement pour la focale resultante."+
+if(x!=0){
+var taille_microns_sans = taille_sans_Bar * ccd_mic_y[CCD]
+var taille_microns_avec = taille_avec_Bar * ccd_mic_y[CCD]
+var foc_result_sans = rad_sec_m * taille_microns_sans / size_obj
+var foc_result_avec = rad_sec_m * taille_microns_avec / size_obj
+var g_effec_r = foc_result_avec / foc_result_sans
+var Foca_Bar_r = Tiragef /(g_effec_r - 1)
+if(!isNaN(Foc_tel)) foca_tel_inf = Ps[0]+Foc_tel+Ps[1]
+if(!isNaN(Foca_Bar_r) && (taille_microns_avec>taille_microns_sans))foca_bar_inf = Ps[0]+round(Foca_Bar_r,1)+Ps[1]
+if(!isNaN(g_effec_r)) g_bar_inf = round(g_effec_r,1)+" x"
+if(!isNaN(taille_microns_sans))res+=Pr[51]+red(round(taille_microns_sans,1))+Pr[57]+Formule(24)+pp
+if(!isNaN(foc_result_sans))res+=Pr[52]+red(round(foc_result_sans,1))+Pr[58]+Formule(26)+pp
+if(!isNaN(taille_microns_avec))res+=Pr[53]+red(round(taille_microns_avec,1))+Pr[57]+Formule(25)+pp
+if(!isNaN(foc_result_avec))res+=Pr[54]+red(round(foc_result_avec,1))+Pr[3]+Formule(27)+pp
+if(!isNaN(g_effec_r))res+=Pr[55]+red(round(g_effec_r,1))+" x."+Formule(28)+pp
+if(!isNaN(Foca_Bar_r) && (taille_microns_avec>taille_microns_sans))res+=Pr[56]+red(round(Foca_Bar_r,1))+Pr[3]+Formule(29)
+//if(!isNaN(Foca_Bar_r) && (taille_microns_avec>taille_microns_sans))res+=Pr[56]+red(round(Tiragef,1))+Pr[3]+Formule(29)
+}
+var img_schema=ftd+pic(0)+foca_tel_inf+pic(1)+foca_bar_inf+pic(2)+g_bar_inf
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Tirage="+Tirage+"&taille_sans_Bar="+taille_sans_Bar+"&taille_avec_Bar="+taille_avec_Bar+"&CCD="+CCD+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tab_schema(ti[11],img_schema,3,x)+tab_resultat(res,x)+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Infos télescope
+//-----------------------------------------------------
+function Info(x,form){
+var str=res=FD_inf=g_max_inf=txt=""
+fct="Info"
+back_to("Info()")
+if (x!=3) recup_val(form)
+if(x!=1){
+if(!title || x==0)title=ti[12]
+	str=build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Diam_prim,Diam_prim)+build_s(x,Box_Coulant,Coulant)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var FD=Foc_tel/Diam_prim//calcul du rapport F/D
+if	(FD <= 5) txt=Pr[59]
+else if(FD >= 10) txt=Pr[60]
+else txt=Pr[61]
+if(!isNaN(Diam_prim)){
+	g_max_inf = "max : "+(Diam_prim * 2.5 )+"x"
+	if(!isNaN(Foc_tel)) FD_inf = Diam_prim+"/"+Foc_tel}
+if(!isNaN(FD))
+res+=Pr[45]+red(round(FD,1))+Pr[46]+red(txt)+Pr[47]+pp
+if(!isNaN(Diam_prim)){
+//res+=Pr[40]+red(round(((Diam_prim*Diam_prim) / 36 ),0))+" x. "+Formule(32)+pp//calcul de la clarté //'<li>calcul de la clarté '+pp//
+res+=Pr[40]+red(round(Math.pow((Diam_prim/7),2 ),0))+" x. "+Formule(32)+pp//calcul de la luminosité
+res+=Pr[41]+red(round((Diam_prim * 2.5 ),0))+" x. "+Formule(31)+pp//calcul du grossissement maximum
+res+=Pr[43]+red(round((Diam_prim/2),1))+" x. "+Formule(30)+pp//calcul du grossissement utile ou résolvant
+res+=Pr[42]+red(round((Diam_prim/6 ),1))+" x. "+Formule(35)+pp//calcul du grossissement équipupillaire ou minimum
+res+=Pr[44]+sec_to_min((120/Diam_prim),2)+Formule(33)+pp//calcul du pouvoir séparateur
+res+=Pr[62]+red(round(Math.log(Diam_prim)/Math.log(10)*5+2.7,1))+"."+Formule(36)+pp//calcul magnitude limitte
+}
+if(!isNaN(Coulant) && !isNaN(Foc_tel)){
+var lim_coulant=(Coulant*(180/Math.PI))/Foc_tel
+res+=Pr[64]+red(round(lim_coulant,2))+Pr[5]+deg_to_sec(lim_coulant,2)+Formule(41)//calcul du champ de vision maximum
+}}
+var img_schema=ftd+pic(0)+FD_inf+"<br>"+g_max_inf
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&Foc_tel="+Foc_tel+"&Diam_prim="+Diam_prim+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tab_schema(acc_fr[6],img_schema,1,x)+tab_resultat(res,x)+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Calcul sur les jumelles avec field
+//-----------------------------------------------------
+function Jumelles(x,form){
+var res=jum_inf=str=wa=""
+fct="Jumelles"
+back_to("Jumelles()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[13]
+	str =build_s(x,Box_x_jum,x_jum)+build_s(x,Box_diam_jum,diam_jum)+build_s(x,Box_field_jum,field_jum)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+var Champ_reel_seconde_arc = (field_jum * 3600)
+if(!isNaN(diam_jum) && !isNaN(x_jum)) jum_inf = x_jum+" x "+diam_jum
+// calcul de la pupille de sortie
+var pup_r = (diam_jum / x_jum)
+if(!isNaN(pup_r))res+= Pr[2]+red(round(pup_r,1))+Pr[3]+Formule(2)+pp
+//calcul de la luminosité des jumelles
+//res+=Pr[63]+red(round(pup_r*pup_r,1))+" x. "+Formule(37)+pp
+res+=Pr[40]+red(round(Math.pow((diam_jum/7),2),1))+" x. "+Formule(32)+pp
+//calcul de la valeur angulaire
+var Champ_reel=field_jum * x_jum
+if(Champ_reel>=64)wa=" Ces jumelles sont \"Grand Angle\"."
+res+="<li>La valeur angulaire des jumelles est de "+red(round(Champ_reel,1))+"°."+wa+Formule(40)+pp
+//calcul du champ en mètres à 1000 mètres.
+res+="<li>Le champs visuel est de "+red(round(field_jum * 1000/(180/Math.PI),1))+" mètres à 1000 mètres."+Formule(38)+pp
+//(2.7+5 * logarithme décimal du Diamètre de l’objectif)
+//res+=Pr[62]+red(round(Math.log(diam_jum)/Math.log(10)*5+2.7,1))+"."+Formule(36)+pp//calcul magnitude limitte
+//calcul du pouvoir séparateur
+res+= Pr[44]+sec_to_min((120/diam_jum),1)+Formule(33)+pp
+// calcul de l'indice crépusculaire
+var indice_crep = Math.sqrt(diam_jum * x_jum) 
+if(!isNaN(indice_crep))res+=Pr[48]+red(round(indice_crep,1))+Pr[49]+Formule(34)}
+var img_schema=ftd+pic(6)+jum_inf
+tmp[1]=tab_schema(ti[13],img_schema,1,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_OCULAIRE(Champ_reel_seconde_arc,size_obj,x,Champ_reel/1.5)//real
+//tmp[3]=simul_OCULAIRE(Champ_reel_seconde_arc,size_obj,x)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&x_jum="+x_jum+"&diam_jum="+diam_jum+"&field_jum="+field_jum+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//Calcul sur les jumelles avec champ en mètres
+//-----------------------------------------------------
+function Jumelles_m(x,form){
+var res=jum_inf=str=wa=""
+fct="Jumelles_m"
+back_to("Jumelles_m()")
+if (x!=3) recup_val(form)
+if(x!=1 || chg_type){
+if(!title || x==0)title=ti[13]
+	str =build_s(x,Box_x_jum,x_jum)+build_s(x,Box_diam_jum,diam_jum)+build_s(x,Box_champ_jum,champ_jum)+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)
+	str+=(x==3) ? td_back_u+fct+"(0)>" : td_back+retour+Calc+fct+"(1,this.form)>"
+	screen1.innerHTML=titre(title)+tbl+str+fin_tbl}
+if(x!=0){
+if(!isNaN(diam_jum) && !isNaN(x_jum)) jum_inf = x_jum+" x "+diam_jum
+// calcul de la pupille de sortie
+var pup_r = (diam_jum / x_jum)
+if(!isNaN(pup_r))res+= Pr[2]+red(round(pup_r,1))+Pr[3]+Formule(2)+pp
+//calcul de la luminosité des jumelles
+//res+=Pr[63]+red(round(pup_r*pup_r,1))+" x. "+Formule(37)+pp
+res+=Pr[40]+red(round(Math.pow((diam_jum/7),2),1))+" x. "+Formule(32)+pp
+//calcul du champ en degré
+var champ_deg=champ_jum/1000*(180/Math.PI)
+res+="<li>Le champ (field) des jumelles est de "+red(round(champ_deg,1))+"°."+Formule(39)+pp
+var Champ_reel_seconde_arc = (champ_deg * 3600)
+//calcul de la valeur angulaire
+var Champ_reel=champ_deg*x_jum
+if(Champ_reel>=64)wa=" Ces jumelles sont \"Grand Angle\"."
+res+="<li>La valeur angulaire des jumelles est de "+red(round(Champ_reel,1))+"°."+wa+Formule(40)+pp
+//calcul du pouvoir séparateur
+res+= Pr[44]+sec_to_min((120/diam_jum),1)+Formule(33)+pp
+// calcul de l'indice crépusculaire
+var indice_crep = Math.sqrt(diam_jum * x_jum) 
+if(!isNaN(indice_crep))res+=Pr[48]+red(round(indice_crep,1))+Pr[49]+Formule(34)}
+var img_schema=ftd+pic(6)+jum_inf
+tmp[1]=tab_schema(ti[13],img_schema,1,x)
+tmp[2]=tab_resultat(res,x)
+tmp[3]=simul_OCULAIRE(Champ_reel_seconde_arc,size_obj,x,Champ_reel/1.5)
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&x_jum="+x_jum+"&diam_jum="+diam_jum+"&champ_jum="+champ_jum+"&obj="+obj+"&size_obj="+size_obj+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tmp[ordre[0]]+tmp[ordre[1]]+tmp[ordre[2]]+my_url
+recup_val(form)
+}
+//-----------------------------------------------------
+//config
+//-----------------------------------------------------
+
+function config(x,form){
+var od=ordre[0]+""+ordre[1]+""+ordre[2]
+var str=""
+fct="config"
+back_to("config()")
+if(form) recup_val(form);
+if(form && num_cfg==7){// affiche les bonnes valeurs dans les selects
+	voir_img=form.voir_img_t.value; voir_img_t = (form.voir_img_t.options[form.voir_img_t.selectedIndex].text)
+	voir_res=form.voir_res_t.value; voir_res_t = (form.voir_res_t.options[form.voir_res_t.selectedIndex].text)
+	voir_sim=form.voir_sim_t.value; voir_sim_t = (form.voir_sim_t.options[form.voir_sim_t.selectedIndex].text)
+	skin=form.skin_t.value; skin_t = (form.skin_t.options[form.skin_t.selectedIndex].text)
+	voir_formules=form.voir_formules_t.value; voir_formules_t = (form.voir_formules_t.options[form.voir_formules_t.selectedIndex].text)
+	ordre_str=form.ordre_str_t.value; ordre_str_t = (form.ordre_str_t.options[form.ordre_str_t.selectedIndex].text)
+	param=voir_img+""+voir_res+""+voir_sim+""+voir_formules+""+ordre_str;//param contient voir_img/voir_res/voir_sim/voir_formules/ordre tableaux
+}
+if(x!=1 || chg_type){
+var tabsel=[,"a","a","a","a","a","a","a"]
+var tabact=[,'','','','','','','']
+tabsel[num_cfg]="span"
+tabact[num_cfg]="-actif"
+str="<p><table><td><div class='menu'><"+tabsel[1]+" class='onglet"+tabact[1]+"' href='#' onclick='num_cfg=1;config();return false;'>Télescope</"+tabsel[1]+"><"+tabsel[2]+" class='onglet"+tabact[2]+"' href='#' onclick='num_cfg=2;config();return false'>Oculaire</"+tabsel[2]+"><"+tabsel[3]+" class='onglet"+tabact[3]+"' href='#' onclick='num_cfg=3;config();return false'>Jumelles</"+tabsel[3]+"><"+tabsel[4]+" class='onglet"+tabact[4]+"' href='#' onclick='num_cfg=4;config();return false'>Barlow</"+tabsel[4]+"><"+tabsel[5]+" class='onglet"+tabact[5]+"' href='#' onclick='num_cfg=5;config();return false'>Caméra</"+tabsel[5]+"><"+tabsel[6]+" class='onglet"+tabact[6]+"' href='#' onclick='num_cfg=6;config();return false'>Objet</"+tabsel[6]+"><"+tabsel[7]+" class='onglet"+tabact[7]+"' href='#' onclick='num_cfg=7;config();return false'>Options</"+tabsel[7]+"></div><div class='boite'><table><td>"
+if (num_cfg==1) str+=red(cfg_t[1])+build_s(x,Box_Foc_tel,Foc_tel)+build_s(x,Box_Diam_prim,Diam_prim)+build_s(x,Box_Coulant,Coulant)//Caractéristiques télescope 
+else if (num_cfg==2) str+=red(cfg_t[2])+build_s(x,Box_Foc_oc,Foc_oc)+build_s(x,Box_champ_oc,champ_oc)//Caractéristiques oculaire 
+else if (num_cfg==3) str+=red(cfg_t[3])+ build_s(x,Box_x_jum,x_jum)+build_s(x,Box_diam_jum,diam_jum)+build_s(x,Box_field_jum,field_jum)+build_s(x,Box_champ_jum,champ_jum)//Caractéristiques jumelles 
+else if (num_cfg==4) str+=red(cfg_t[4])+ build_s(x,Box_x_Bar,x_Bar)+build_s(x,Box_Foc_Bar,Foc_Bar)+build_s(x,Box_Foc_Bar2,Foc_Bar2)+build_s(x,Box_Bar_2_Bar,Bar_2_Bar)+build_s(x,Box_x_res,x_res)+build_s(x,Box_Tirage,Tirage)//Caractéristiques Barlow
+else if (num_cfg==5) str+=red(cfg_t[5])+build_s(x,Box_CCD,CCD)//Caractéristiques CCD
+else if (num_cfg==6) str+=red(cfg_t[6])+build_s(x,Box_obj,obj)+build_s(x,Box_size_obj,size_obj)//Caractéristiques objet 
+else if (num_cfg==7) {//Préferences 
+str+=red(cfg_t[7])+"<div align=right><br>"
+str+='Choix de la skin : <select onchange=ActiveCSS(this.value) name=\"skin_t\">'
+str+='<option value=standard ' +(skin=='standard'?sd:"")+'>standard'
+str+='<option class=sel_gris value=black '+(skin=='black'?sd:"")+'>black'
+str+='<option value=black_orange '+(skin=='black_orange'?sd:"")+'>black_orange'
+str+='<option class=sel_gris value=grey_white '+(skin=='grey_white'?sd:"")+'>grey_white'
+str+='<option value=grey_red '+(skin=='grey_red'?sd:"")+'>grey_red'
+str+='<option class=sel_gris value=white '+(skin=='white'?sd:"")+'>white'
+str+='</select><p>'
+str+=cfg_t[8]+"<select name=\"voir_img_t\"><option value=1 "+(voir_img?sd:"")+cfg_t[10]+(voir_img?"":sd)+cfg_t[11]
+str+=cfg_t[9]+"<select name=\"voir_res_t\"><option value=1 "+(voir_res?sd:"")+cfg_t[10]+(voir_res?"":sd)+cfg_t[11]
+str+=cfg_t[12]+"<select name=\"voir_sim_t\"><option value=1 "+(voir_sim?sd:"")+cfg_t[10]+(voir_sim?"":sd)+cfg_t[11]
+str+="<p>"+cfg_t[13]+"<select name=\"voir_formules_t\"><option value=1 "+(voir_formules?sd:"")+cfg_t[10]+(voir_formules?"":sd)+cfg_t[15]
+str+="<p>"+cfg_t[14]+"<select name=\"ordre_str_t\">"
+var tl=" - "
+str+="<option value=123 "+(od=="123"?sd:"")+">"+acc_fr[12]+tl+acc_fr[13]+tl+acc_fr[14]+"<option class=sel_gris value=132 "+(od=="132"?sd:"")+">"+acc_fr[12]+tl+acc_fr[14]+tl+acc_fr[13]+""
+str+="<option value=213 "+(od=="213"?sd:"")+">"+acc_fr[13]+tl+acc_fr[12]+tl+acc_fr[14]+"<option class=sel_gris value=231 "+(od=="231"?sd:"")+">"+acc_fr[13]+tl+acc_fr[14]+tl+acc_fr[12]+""
+str+="<option value=312 "+(od=="312"?sd:"")+">"+acc_fr[14]+tl+acc_fr[12]+tl+acc_fr[13]+"<option class=sel_gris value=321 "+(od=="321"?sd:"")+">"+acc_fr[14]+tl+acc_fr[13]+tl+acc_fr[12]+"</select></div>"
+}
+str+=dtt+pp+"&nbsp;"+td_back+retour+">"+EE+"<INPUT type=button value=\""+but[5]+"\" onclick="+fct+"(5,this.form)></div>"
+screen1.innerHTML=titre(acc_fr[8])+str+fin_tbl//ti[0]
+screen2.innerHTML=""
+}
+if(x==5){//si l'utilisateur enregistre
+var no_expire="; expires='Thu, 31-Dec-3000 00:00:00 GMT.' "
+document.cookie="Foc_tel="+escape(Foc_tel)+no_expire
+document.cookie="Diam_prim="+escape(Diam_prim)+no_expire
+document.cookie="Coulant="+escape(Coulant)+no_expire
+document.cookie="Foc_oc="+escape(Foc_oc)+no_expire
+document.cookie="champ_oc="+escape(champ_oc)+no_expire
+document.cookie="Tirage="+escape(Tirage)+no_expire
+document.cookie="obj="+escape(obj)+no_expire
+document.cookie="size_obj="+escape(size_obj)+no_expire
+document.cookie="x_jum="+escape(x_jum)+no_expire
+document.cookie="diam_jum="+escape(diam_jum)+no_expire
+document.cookie="field_jum="+escape(field_jum)+no_expire
+document.cookie="champ_jum="+escape(champ_jum)+no_expire
+document.cookie="x_Bar="+escape(x_Bar)+no_expire
+document.cookie="Foc_Bar="+escape(Foc_Bar)+no_expire
+document.cookie="Foc_Bar2="+escape(Foc_Bar2)+no_expire
+document.cookie="Bar_2_Bar="+escape(Bar_2_Bar)+no_expire
+document.cookie="x_res="+escape(x_res)+no_expire
+document.cookie="CCD="+escape(CCD)+no_expire
+document.cookie="param="+escape(param)+no_expire
+document.cookie="skin="+escape(skin)+no_expire
+cooki();Accueil();//obligé de relire les cookies à cause de "param"
+alert(cookie_alert)}
+}
+//--------------------------------------------------------------------------------------
+// affichages simulation télescope historique ou observatoire
+//--------------------------------------------------------------------------------------
+var fls="</u></a>."+pp//ici car change selon skin
+var tmpl="<LI>"+url_fct+"to&Foc_tel="
+
+function hist(f_tel,diam,f_oc,c_oc,obje,s_obj,titl){
+return tmpl+f_tel+"&Diam_prim="+diam+"&Foc_oc="+f_oc+"&champ_oc="+c_oc+"&obj="+obje+"&size_obj="+s_obj+"&title="+historia[titl]+"'><u>"+historia[titl]+fls
+}
+
+function histoire(){
+back_to("histoire()")
+screen1.innerHTML='';
+screen2.innerHTML=tbl8+tdw+titre(ti[32])+pp+"<UL class=sq>"+hist(1330,51,-94,15,'Jupiter',43.96,0)+hist(980,15,-47.5,15,'Jupiter',43.96,1)+hist(3600,50.8,72,15,'Saturne',20.1,2)+hist(160,37,4.2,15,'Jupiter',48,3)+hist(2130,152.4,9.4,15,'Uranus',4.1,4)+hist(4300,241.3,12,40,'Jupiter',43.96,5)+hist(16600,1828.8,20,30,'Saturne',19.11,6)+hist(17600,914.4,20,30,'Saturne',19.11,7)+hist(19400,1016,15,15,'Mars',9,8)+fin_tbl+pp+tbl8+tdw+titre(ti[33])+pp+"<UL class=sq>"+hist(15000,8300,12,30,'Mars',25,9)+hist(12900,2540,12,30,'Saturne',19.11,10)+hist(16300,5080,12,30,'Jupiter',43.96,11)+fin_tbl+pp+tbl8+tdw+titre(ti[34])+pp+"<UL class=sq>"+hist(57600,2400,30,30,'Jupiter',43.96,12)+hist(10000,1200,12,30,'Jupiter',43.96,13)+hist(10200,850,12,30,'Jupiter',43.96,14)+hist(131400,6500,12,20,'Neptune',2.22,15)+fin_tbl+pp+Back+retour+";>"
+
+}
+//--------------------------------------------------------------------------------------
+// affichages simulation télescopes et jumelles du commerce
+//--------------------------------------------------------------------------------------
+function mat(f_tel,diam,titl){return tmpl+f_tel+"&Diam_prim="+diam+"&title="+matos[titl]+"'><u>"+matos[titl]+fls}
+
+function jum(x_j,d_j,c_j,obje,s_obj,titl,champ_type){if (champ_type==0)
+return "<LI>"+url_fct+"Jumelles_m&x_jum="+x_j+"&diam_jum="+d_j+"&champ_jum="+c_j+"&obj="+obje+"&size_obj="+s_obj+"&title="+matos[titl]+"'><u>"+matos[titl]+fls
+else return "<LI>"+url_fct+"Jumelles_m&x_jum="+x_j+"&diam_jum="+d_j+"&field_jum="+c_j+"&obj="+obje+"&size_obj="+s_obj+"&title="+matos[titl]+"'><u>"+matos[titl]+fls
+}
+
+function materiel(){
+back_to("materiel()")
+screen1.innerHTML='';
+screen2.innerHTML=tbl8+tdw+titre(ti[29])+pp+"<UL class=sq>"+mat(350,70,0)+mat(400,80,1)+mat(1250,90,2)+mat(1470,105,3)+mat(1900,125,4)+mat(1325,102,5)+mat(1250,125,6)+mat(1500,150,7)+mat(2032,203.2,8)+mat(1000,203.2,9)+mat(2350,235,10)+mat(2800,280,11)+fin_tbl+pp+tbl8+tdw+titre(ti[28])+pp+"<UL class=sq>"+jum(10,50,114,'Lune',1880,12,0)+jum(10.5,70,87.5,'Lune',1880,13,0)+jum(15,70,4.4,'Lune',1880,14,1)+fin_tbl+pp+Back+retour+";>"
+}
+//--------------------------------------------------------------------------------------
+// affichages simulation oculaires du commerce
+//--------------------------------------------------------------------------------------
+function sim_oc_com(){
+back_to("sim_oc_com()")
+//--------------------------------------------------------------------------------------
+// oculaire_com("nom de l'oculaire","focale en mm","champ en degr")
+//--------------------------------------------------------------------------------------
+nom_oc_com=[],foc_oc_com=[],champ_oc_com=[]
+oculaire_com("Antares W70 (4.3mm 70°)","4.3","70")
+oculaire_com("Antares W70 (5.7mm 70°)","5.7","68")
+oculaire_com("Antares W70 (8.6mm 70°)","8.6","70")
+oculaire_com("Antares W70 (14mm 70°)","14","70")
+oculaire_com("Antares W70 (15mm 70°)","15","70")
+oculaire_com("Antares W70 (19mm 70°)","19","68")
+oculaire_com("Antares W70 (25mm 70°)","25","70")
+oculaire_com("Antares W70 (34mm 70°)","34","70")
+oculaire_com("Antares WA (25mm 70°)","25","70")
+oculaire_com("Antares WA (14mm 70°)","14","70")
+oculaire_com("Antares WA (5.7mm 70°)","5.7","70")
+oculaire_com("Antares (9mm 40°)","9","40")
+oculaire_com("Baader Hyperion (17mm 68°)","17","68")
+oculaire_com("Baader Hyperion (5mm 68°)","5","68")
+oculaire_com("Baader Hyperion (21mm 60°)","21","60")
+oculaire_com("Baader Hyperion (5mm 68°)","5","68")
+oculaire_com("Baader Hyperion (8mm 68°)","8","68")
+oculaire_com("Baader Hyperion (13mm 68°)","13","68")
+oculaire_com("Baader Hyperion (21mm 68°)","21","60")//60 en fait
+oculaire_com("Burgess TMB Planetary (32mm 60°)","3.2","60")
+oculaire_com("Celestron Plossl (17mm 50°)","17","50")
+oculaire_com("Celestron OMNI Plossl (4mm 50°)","4","50")
+oculaire_com("Celestron Nextar Plossl (32mm 50°)","32","50")
+oculaire_com("Celestron X-Cel (2.3mm 55°)","2.3","55")
+oculaire_com("Celestron X-Cel (12.5mm 55°)","12.5","55")
+oculaire_com("EPIC-ED (9.7mm 55°)","9.7","55")
+oculaire_com("Genuine (18mm 40°)","18","40")
+oculaire_com("Genuine (12.5mm 40°)","12.5","40")
+oculaire_com("GSO 32 (50mm 50°)","50","50")
+oculaire_com("Meade SWA (13.6mm 68°)","13.6","68")
+oculaire_com("Meade Super Plossl (6.4mm 52°)","6.4","52")//Coulant 31.75mm
+oculaire_com("Meade Super Plossl (9.7mm 52°)","9.7","52")//Coulant 31.75mm
+oculaire_com("Meade Super Plossl (12.4mm 52°)","12.4","52")//Coulant 31.75mm
+oculaire_com("Meade Super Plossl (15mm 52°)","15","52")//Coulant 31.75mm
+oculaire_com("Meade Super Plossl (20mm 52°)","20","52")//Coulant 31.75mm
+oculaire_com("Meade Super Plossl (26mm 52°)","26","52")//Coulant 31.75mm
+oculaire_com("Meade Super Plossl (32mm 52°)","32","52")//Coulant 31.75mm
+oculaire_com("Meade Super Plossl (40mm 44°)","40","44")//Coulant 31.75mm
+oculaire_com("Meade Super Plossl (56mm 52°)","56","52")//Coulant 50.8mm
+oculaire_com("Orion Highlight (12.5mm 52°)","12.5","52")
+oculaire_com("Pentax XW (20mm 70°)","20","70")
+//tout les Sky-Watcher sur http://skywatchertelescope.net/swtinc/product.php?class1=5&class2=502
+oculaire_com("Sky-Watcher 2\" (42mm 52°)","42","52")//Coulant 50.8mm
+oculaire_com("Sky-Watcher 2\" (35mm 56°)","35","56")//Coulant 50.8mm
+oculaire_com("Sky-Watcher 2\" (28mm 56°)","28","56")//Coulant 50.8mm
+oculaire_com("Sky-Watcher KELLNER (25mm 50°)","25","50")//Coulant 31.75mm
+oculaire_com("Sky-Watcher KELLNER (17mm 50°)","17","50")//Coulant 31.75mm
+oculaire_com("Sky-Watcher KELLNER (12.5mm 50°)","12.5","50")//Coulant 31.75mm
+oculaire_com("Sky-Watcher KELLNER (10mm 50°)","10","50")//Coulant 31.75mm
+oculaire_com("Sky-Watcher KELLNER (6.3mm 50°)","6.3","50")//Coulant 31.75mm
+oculaire_com("Sky-Watcher WIDEANGLE (20mm 66°)","20","66")//Coulant 31.75mm
+oculaire_com("Sky-Watcher WIDEANGLE (15mm 66°)","15","66")//Coulant 31.75mm
+oculaire_com("Sky-Watcher WIDEANGLE (9mm 66°)","9","66")//Coulant 31.75mm
+oculaire_com("Sky-Watcher WIDEANGLE (6mm 66°)","6","66")//Coulant 31.75mm
+oculaire_com("Sky-Watcher LET (25mm 50°)","25","50")//Coulant 31.75mm
+oculaire_com("Sky-Watcher LET (20mm 50°)","20","50")//Coulant 31.75mm
+oculaire_com("Sky-Watcher LET (15mm 50°)","15","50")//Coulant 31.75mm
+oculaire_com("Sky-Watcher LET (9mm 50°)","9","50")//Coulant 31.75mm
+oculaire_com("Sky-Watcher LET (5mm 45°)","5","45")//Coulant 31.75mm
+oculaire_com("Sky-Watcher LET (2mm 45°)","2","45")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER LENS (25mm 50°)","25","50")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER LENS (20mm 52°)","20","52")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER LENS (10mm 52°)","10","52")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER LENS (4mm 50°)","4","50")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER LENS (3.6mm 40°)","3.6","40")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER PLÖSSL (40mm 52°)","40","52")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER PLÖSSL (32mm 52°)","32","52")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER PLÖSSL (26mm 52°)","26","52")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER PLÖSSL (20mm 52°)","20","52")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER PLÖSSL (17mm 52°)","17","52")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER PLÖSSL (12.5mm 52°)","12.5","52")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER PLÖSSL (10mm 52°)","10","52")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER PLÖSSL (7.5mm 52°)","7.5","52")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER PLÖSSL (6.3mm 52°)","6.3","52")//Coulant 31.75mm
+oculaire_com("Sky-Watcher HUYGENIAN (20mm 30°)","20","30")//Coulant 31.75mm
+oculaire_com("Sky-Watcher HUYGENIAN (12.5mm 30°)","12.5","30")//Coulant 31.75mm
+oculaire_com("Sky-Watcher HUYGENIAN (8mm 30°)","8","30")//Coulant 31.75mm
+oculaire_com("Sky-Watcher SUPER RAMSDEN (4mm 30°)","4","30")//Coulant 31.75mm
+oculaire_com("Speers Waler (10mm 82°)","10","82")
+oculaire_com("Sky Optic SuperView (10mm 68°)","10","68")//Coulant 31.75mm
+oculaire_com("Sky Optic SuperView (15mm 68°)","15","68")//Coulant 31.75mm
+oculaire_com("Sky Optic SuperView (20mm 68°)","20","68")//Coulant 31.75mm
+oculaire_com("Sky Optic SuperView (30mm 68°)","30","68")//Coulant 50.8mm 
+oculaire_com("Sky Optic SuperView (42mm 60°)","42","60")//Coulant 50.8mm
+oculaire_com("Sky Optic SuperView (50mm 60°)","50","60")//Coulant 50.8mm
+oculaire_com("Swan William Optic (40mm 70°)","40","70")
+oculaire_com("Swan William Optic (25mm 72°)","25","72")
+oculaire_com("Swan William Optic (15mm 72°)","15","72")
+oculaire_com("Swan William Optic (9mm 72°)","9","72")
+oculaire_com("Televue Nagler (4.8mm 72°)","4.8","72")
+oculaire_com("Televue Nagler VI (5mm 82°)","5","82")
+oculaire_com("Televue Nagler (7mm 82°)","7","82")
+oculaire_com("Televue Nagler VI (9mm 82°)","9","82")
+oculaire_com("Televue Nagler VI (13mm 82°)","13","82")
+oculaire_com("Televue Nagler V (16mm 82°)","16","82")
+oculaire_com("Televue Nagler (22mm 82°)","22","82")
+oculaire_com("Televue Nagler V (31mm 82°)","31","82")
+oculaire_com("Televue RAdian (8mm 60°)","8","60")
+oculaire_com("Televue RAdian (12mm 60°)","12","60")
+oculaire_com("Televue RAdian (18mm 60°)","18","60")
+oculaire_com("Televue Panoptic (24mm 67°)","24","67")
+oculaire_com("Televue Panoptic (35mm 69°)","35","69")
+oculaire_com("Vixen Lanthanum LV30 (30mm 60°)","30","60")
+oculaire_com("Plossl chinois (25mm 45°)","25","45")
+//--------------------------------------------------------------------------------------
+var str=tbl8+tdw+titre(ti[27])+pp+"<UL class=sq>"
+for (i=0;i<nom_oc_com.length;i++)
+str+="<LI><a href=# onclick='tit=\""+nom_oc_com[i]+"\";Foc_oc="+foc_oc_com[nom_oc_com[i]]+";champ_oc="+champ_oc_com[nom_oc_com[i]]+";obj=\"M42\";size_obj=2680.577;to();return false'><u>"+nom_oc_com[i]+""+fls
+screen1.innerHTML='';screen2.innerHTML=str+fin_tbl+pp+Back+retour+";>"
+}
+//-----------------------------------------------------
+//conversion
+//-----------------------------------------------------
+function conversion(x,form){
+var res=FD_inf=G_Bar_inf=foc_oc_inf=""
+fct="conversion"
+back_to("conversion()")
+var deci=4
+var conv_val=''
+if(form)conv_val=parseFloat(form.Box_convert_txt.value)
+if(isNaN(conv_val))conv_val=5
+if(x!=1) screen1.innerHTML=titre(ti[14])+tbl+"<TR>"+Tar+Pr[50]+"<input name=Box_convert_txt onchange="+fct+"(1,this.form) onKeyPress=\"return keyCheck(event, this)\" type=text size=10>"+td_back+retour+Calc+fct+"(1,this.form)>"+fin_tbl
+if(x!=0 && !isNaN(conv_val)){
+var deb=pp+"<LI> "+conv_val
+res+="<LI> "+conv_val+" inches = "+red(round((conv_val * 25.4),deci))+Pr[3]+Formule("(1 inche = 25.4 mm)")
+res+=deb+" mm = "+red(round((conv_val / 25.4),deci))+" inches. "+Formule("(1 inche = 25.4 mm)")
+res+=deb+" mm = "+red(round((conv_val*1000),deci))+" µm. "+Formule("(1 mm = 1000 µm)")
+res+=deb+" µm = "+red(round((conv_val/1000),deci))+Pr[3]+Formule("(1000 µm = 1 mm)")
+res+=deb+" radians = "+red(round((conv_val * 180/Math.PI),deci))+" degrés. "+Formule("(Angle en radian * 180/<font face=\"Symbol\">p</font> = Angle en degrés)")
+res+=deb+" secondes d'arc = "+sec_to_deg(conv_val,deci)+Formule("(1 degré=3600 secondes d'arc)")
+res+=deb+" secondes d'arc = "+red(round((conv_val/60),deci))+" minutes d'arc. "+Formule("(60 secondes d'arc = 1 minutes d'arc)")
+res+=deb+" minutes d'arc = "+red(round((conv_val *60),deci))+" secondes d'arc. "+Formule("(1 minutes d'arc = 60 secondes d'arc)")
+res+=deb+" minutes d'arc = "+sec_to_deg(conv_val*60,deci)+Formule("(60 minutes d'arc = 1 degré)")
+res+=deb+" mètres à 1 km = "+red(round((conv_val/17.44),deci))+" degrés. "+Formule("(X mètres à 1km = X / 17.44 degrés)")
+res+=deb+" degrés = "+red(round((conv_val*17.44),deci))+" mètres à 1 km. "+Formule("(X mètres à 1km = X / 17.44 degrés)")
+res+=deb+" degrés = "+deg_to_sec(conv_val,deci)+Formule("(1 degré = 3600 secondes d'arc)")
+res+=deb+" degrés = "+red(round((conv_val / 180*Math.PI),deci))+" radians. "+Formule("(Angle en degrés /180*pi Angle en radian)")}
+my_url=(x!=0 && x!=3) ? pp+url_fct+fct+"&conv_val="+conv_val+"&skin="+skin+"'>"+net : ""
+screen2.innerHTML=tab_resultat(res,x)+my_url
+//if(x!=0 && x!=3)form.Box_convert_txt.value=conv_val
+}
+//-----------------------------------------------------
+// Calcul éphémeride
+//-----------------------------------------------------
+function ephemeride(x,form){
+var str=res=""
+fct="ephemeride"
+back_to("ephemeride()")
+if(form){
+jour=parseInt(form.day.value)
+mois=parseInt(form.month.value)
+annee=parseInt(form.year.value)
+heure=parseInt(form.hour.value)
+minute=parseInt(form.minut.value)
+seconde=parseInt(form.second.value)
+str+="<center><h4><u>Le "+jour+"/"+mois+"/"+annee+"</u></h4></center><UL class=sq>"
+for (var i=0; i<=6;i++)
+str+="<li> Diamètre angulaire de "+objets_tbl[i]+" : "+red(calculer(objets_tbl[i],[jour,mois,annee,heure,minute,seconde]))+" secondes d'arc.<p>"
+}
+mt = new Date();
+// Affiche le titre et les boites de selections
+if(x!=1 || chg_type){
+res=dtt+"Date: <select name=\"day\"onchange="+fct+"(1,this.form)>"
+for (i=1;i<=31;i++) res+="<option "+((i==mt.getDate())?sd:'')+" value="+i+">"+i
+res+="</select> <select name=\"month\" onchange="+fct+"(1,this.form)>"
+for (i=1;i<=12;i++) res+="<option "+((i==mt.getMonth())?sd:'')+" value="+(i+1)+">"+t_month[i+1]
+res+="</select> <select name=\"year\" onchange="+fct+"(1,this.form)>"
+for (i=2000;i<=2010;i++) res+="<option "+((i==mt.getYear())?sd:'')+" value="+i+">"+i
+res+="</select></TR>"+dtt+"Heure: <select name=\"hour\" onchange="+fct+"(1,this.form)>"
+for (i=0;i<=23;i++) res+="<option "+((i==mt.getHours())?sd:'')+" value="+i+">"+i
+res+="</select> :<select name=\"minut\" onchange="+fct+"(1,this.form)>"
+for (i=0;i<=59;i++) res+="<option "+((i==mt.getMinutes())?sd:'')+" value="+i+">"+i
+res+="</select> :<select name=\"second\" onchange="+fct+"(1,this.form)>"
+for (i=0;i<=59;i++) res+="<option "+((i==mt.getSeconds())?sd:'')+" value="+i+">"+i
+res+="</select></TR>"+dtt
+res+=td_back+retour+Calc+fct+"(1,this.form)>"
+screen1.innerHTML=titre(ti[15])+tbl+res+fin_tbl
+}
+if(str) str=tbl+"<TD class=blanc><br>"+str+pp+fin_tbl
+screen2.innerHTML=str
+}
+//--------------------------------------------------------------------------------------
+// aide sur les les raccourcis
+//--------------------------------------------------------------------------------------
+function Aide_rac(){
+back_to("Aide_rac()")
+screen1.innerHTML='';
+screen2.innerHTML=tbl8+tdw+titre(ti[30])+pp+aide_rac_fr+fin_tbl+pp+Back+retour+";>"
+}
+//--------------------------------------------------------------------------------------
+// aide spour utiliser CFAA en local
+//--------------------------------------------------------------------------------------
+function Aide_local(){
+back_to("Aide_local()")
+screen1.innerHTML='';
+screen2.innerHTML=tbl8+tdw+titre(ti[31])+pp+aide_local_fr+fin_tbl+pp+Back+retour+";>"
+}
+//--------------------------------------------------------------------------------------
+// aide
+//--------------------------------------------------------------------------------------
+function Aide(){
+back_to("Aide()")
+screen1.innerHTML='';
+screen2.innerHTML=tbl8+tdw+titre(acc_fr[9])+pp+aide1_fr+fin_tbl+pp+tbl8+tdw+titre(ti[35])+pp+aide2_fr+fin_tbl+pp+tbl8+tdw+titre(ti[36])+pp+aide3_fr+fin_tbl+pp+tbl8+tdw+titre(ti[37])+pp+aide4_fr+fin_tbl+pp+tbl8+tdw+titre(ti[38])+pp+aide5_fr+fin_tbl+pp+Back+retour+";>"
+}
+//--------------------------------------------------------------------------------------
+// plan du site
+//--------------------------------------------------------------------------------------
+function Plan(){//à faire: remplacer les titres par ceux du tableau
+back_to("Plan()")
+var tp=ftt+"<TR><TD class=blanc>"//<font size=-2>"
+var img="<img ALIGN='top' src='cfaa/"
+var book=img+"book.gif'>"
+var V=img+"trait_vert.gif'>"
+var C=img+"trait_coud.gif'>"
+var D=img+"trait_droit.gif'>"
+var M=img+"methode.gif'>"
+var F=img+"file.gif'>"
+var feedback=img+"feedback.gif'>"
+var zip=img+"zip.gif'>"
+var calendar=img+"calendar.gif'>"
+var tools=img+"tools.gif'>"
+var S="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+var aa=" <a href=# onclick='"
+var str="<table class=MaTable width=80% cellpadding=0 cellspacing=0 class=blanc>"+dtt+titre("Plan du site")+tp
+str+=S+book+aa+"Accueil()"+rf+"Accueil."+fa+tp
+str+=S+D+tp//séparation
+str+=S+V+tools+aa+"cooki();config()"+rf+acc_fr[8]+fa+tp //enlever cooki pour le mettre dans config
+str+=S+D+tp//séparation
+str+=S+V+F+aa+"Info(0)"+rf+acc_fr[6]+fa+tp
+str+=S+D+tp//séparation
+str+=S+V+F+aa+"Barlow(0)"+rf+acc_fr[3]+fa+tp//W
+str+=S+D+tp//séparation
+str+=S+V+M+aa+"choice(9)"+rf+ti[13]+fa+tp
+str+=S+D+S+V+F+aa+"Jumelles(0)"+rf+ti[24]+fa+tp
+str+=S+D+S+C+F+aa+"Jumelles_m(0)"+rf+ti[25]+fa+tp
+str+=S+D+tp//séparation
+str+=S+V+M+aa+"Aide()"+rf+acc_fr[9]+" :"+fa+tp
+str+=S+D+S+V+calendar+aa+"ephemeride(0)"+rf+"Les éphémérides des planètes."+fa+tp
+str+=S+D+S+V+F+aa+"conversion(0)"+rf+"Aide pour les conversions."+fa+tp
+str+=S+D+S+V+M+" Plan du site. "+EE+" <-- Vous êtes ici."+tp
+str+=S+D+S+V+M+aa+"Aide_rac(0)"+rf+"Comprendre les raccourcis."+fa+tp
+str+=S+D+S+V+M+aa+"Aide_local()"+rf+"Installer CFAA en local."+fa+tp
+str+=S+D+S+V+F+aa+"histoire()"+rf+"Simuler un télescope historique ou un observatoire."+fa+tp
+str+=S+D+S+V+F+aa+"materiel()"+rf+"Simuler un télescope ou des jumelles du commerce."+fa+tp
+str+=S+D+S+C+F+aa+"sim_oc_com(0)"+rf+"Simuler un oculaire du commerce."+fa+tp
+str+=S+D+tp//séparation
+str+=S+V+M+aa+"choice(1)"+rf+acc_fr[0]+" :"+fa+tp
+str+=S+D+S+V+F+aa+"to(0)"+rf+ti[17]+fa+tp
+str+=S+D+S+V+F+aa+"tbo(0)"+rf+ti[16]+fa+tp
+str+=S+D+S+C+M+aa+"choice(6)"+rf+ti[18]+fa+tp
+str+=S+D+S+S+S+V+F+aa+"tbto(0)"+rf+ti[3]+fa+tp
+str+=S+D+S+S+S+C+F+aa+"tbto2(0)"+rf+ti[4]+fa+tp
+str+=S+D+tp//séparation
+str+=S+V+M+aa+"choice(2)"+rf+acc_fr[1]+" :"+fa+tp
+str+=S+D+S+V+F+aa+"tc(0)"+rf+ti[5]+fa+tp
+str+=S+D+S+V+F+aa+"tbc(0)"+rf+ti[19]+fa+tp
+str+=S+D+S+V+M+aa+"choice(4)"+rf+ti[20]+fa+tp
+str+=S+D+S+D+S+V+F+aa+"tbtc(0)"+rf+ti[1]+fa+tp
+str+=S+D+S+D+S+C+F+aa+"tbtc2(0)"+rf+ti[2]+fa+tp
+str+=S+D+S+V+M+aa+"choice(5)"+rf+ti[21]+fa+tp
+str+=S+D+S+D+S+V+F+aa+"totc(0)"+rf+ti[3]+fa+tp
+str+=S+D+S+D+S+C+F+aa+"totc2(0)"+rf+ti[4]+fa+tp
+str+=S+D+S+V+F+aa+"tbtbc(0)"+rf+ti[7]+fa+tp
+str+=S+D+S+C+F+aa+"tbtbtc(0)"+rf+ti[8]+fa+tp
+str+=S+D+tp//séparation
+str+=S+V+M+aa+"choice(3)"+rf+acc_fr[2]+" :"+fa+tp
+str+=S+D+S+V+F+aa+"tp(0)"+rf+ti[9]+fa+tp
+str+=S+D+S+V+M+aa+"choice(7)"+rf+ti[22]+fa+tp
+str+=S+D+S+D+S+V+F+aa+"tbtp(0)"+rf+ti[1]+fa+tp
+str+=S+D+S+D+S+C+F+aa+"tbtp2(0)"+rf+ti[2]+fa+tp
+str+=S+D+S+C+M+aa+"choice(8)"+rf+ti[23]+fa+tp
+str+=S+D+S+S+S+V+F+aa+"totp2(0)"+rf+ti[3]+fa+tp
+str+=S+D+S+S+S+C+F+aa+"totp(0)"+rf+ti[4]+fa+tp
+str+=S+D+tp//séparation
+str+=S+C+M+" En ligne uniquement :"+tp
+str+=S+S+S+V+feedback+" <a href='"+url_cfaa+"messages'>Laissez un message."+fa+tp
+str+=S+S+S+C+zip+"<A HREF=\"cfaa.zip\"> "+acc_fr[10]+".zip"+fa+tp+"<br>"//<br><center>CFAA fait 120 ko pour 35 pages crées dynamiquement (Hors images) !<br><br>"
+str+=fin_tbl+pp+Back+retour+";></center>"
+screen1.innerHTML='';screen2.innerHTML=str
+}
+//--------------------------------------------------------------------------------------
+// © 2005-2007 Steven Moyard aka GUNNM smoyard@yahoo.fr
+// Merci d'utiliser ce code. Jusqu'ici il est libre de droit, tant que vous en citez la source.
+// Si vous le modifiez, prévenez moi, merci d'avance.
+// Mes autres scripts : http://gunnm.is.free.fr
+//
+// Le code, à partir d'ici, a été réalisé par http://perso.wanadoo.fr/noirmain/
+// Avec quelques modifications pour le rendre compatible. Merci à lui.
+// Cette partie ne m'appartenant pas, voyez avec lui pour toute utilisation ou modifs.
+//--------------------------------------------------------------------------------------
+function calculer(astre,date){
+if(date){jour=date[0];mois=date[1];annee=date[2];heure=date[3];minute=date[4];seconde=date[5]}
+else {var now=new Date(); with (now){jour=getDate();mois=getMonth()+1;annee=getFullYear();heure=getHours();minute=getMinutes();seconde=getSeconds()}}
+
+if (mois>2)	{y=annee;m=mois;}
+else		{y=annee-1;m=mois+12;}
+
+with (Math){
+b=0;
+if ((y*10000+m*100+jour)>15821015) { a=floor(y/100); b=2-a+floor(a/4); }
+
+jj=1720994.5+floor(365.25*y)+floor(30.6001*(m+1))+b+jour+heure/24+minute/1440+seconde/86400;//calcul jour julien
+
+t=(jj-2415020)/36525;
+t2=t*t;
+t3=t2*t;
+
+t2000 = (jj - 2451545) / 36525;
+t2_2000 = t2000 * t2000;
+t3_2000 = t2_2000*t2000;
+
+ct1=180/PI;
+y=2*PI;
+
+iteration=1;
+
+l=(279.69668+36000.76892*t)+0.0003025*t*t;
+l=l/ct1;
+m=(358.47583+35999.04975*t)-0.00015*t*t-0.0000033*t*t*t;
+m=m/ct1;
+
+e=0.01675104-0.0000418*t-0.000000126*t*t;
+c=(1.91946/ct1-0.004789/ct1*t-0.000014/ct1*t*t)*sin(m)+(0.020094/ct1-0.0001/ct1*t)*sin(2*m)+0.000293/ct1*sin(3*m);
+
+l=l+c;
+v=m+c;
+
+r=1.0000002*(1-e*e)/(1+e*cos(v));
+
+omega=259.18/ct1-1934.142/ct1*t;
+
+longitude=l-0.00569/ct1-0.00479/ct1*sin(omega);
+
+a=153.23/ct1+22518.7541/ct1*t;
+b=216.57/ct1+45037.5082/ct1*t;
+c=312.69/ct1+32964.3577/ct1*t;
+d=350.74/ct1+445267.1142/ct1*t-0.00144/ct1*t*t;
+e=231.19/ct1+20.2/ct1*t;
+h=353.4/ct1+65928.7155/ct1*t;
+
+longitude=longitude+0.00134/ct1*cos(a)+0.00154/ct1*cos(b)+0.002/ct1*cos(c)+0.00179/ct1*sin(d)+0.00178/ct1*sin(e);
+longitude_soleil = longitude - y * floor(longitude / y);
+longitude_terre=longitude_soleil+PI;
+
+latitude_soleil=0;
+latitude_terre=0;
+
+r=r+0.00000543*sin(a)+0.00001575*sin(b)+0.00001627*sin(c)+0.00003076*cos(d)+0.00000927*sin(h);
+distance_terre_soleil=r;
+
+longitude_vraie = longitude_soleil;
+
+obliquite = (23.452294-0.0130125*t-0.00000164*t2+0.000000503*t3+0.00256*cos(omega)) / ct1;
+
+xs = r * cos(longitude_vraie);
+ys = r * sin(longitude_vraie) * cos(obliquite);
+zs = r * sin(longitude_vraie) * sin(obliquite);
+
+var constante=[]
+if (astre=="Mercure") constante=['',178.179078,149474.07078,0.0003011,0.38709830982,0.20561421,0.00002046,-0.00000003,7.002881,0.0018608,-0.0000183,102.27938,149472.51529,0.000007,47.145944,1.1852083,0.0001739,6.728]
+else if (astre=="Venus") constante=['',342.767053,58519.21191,0.0003097,0.72332981996,0.00682069,-0.00004774,0.000000091,3.393631,0.0010058,-0.000001,212.60322,58517.80387,0.001286,75.779647,0.89985,0.00041,16.688]
+else if (astre=="Mars") constante=['',293.737334,19141.69551,0.0003107,1.52367934191,0.0933129,0.000092064,-0.000000077,1.850333,-0.000675,0.0000126,319.51913,19139.85475,0.000181,48.786442,0.7709917,-0.0000014,9.368]
+else if (astre=="Jupiter") constante=['',238.049257,3036.301986,0.0003347,5.20260300002,0.04833475,0.00016418,-0.0000004676,1.308736,-0.0056961,0.0000039,225.32833,3034.69202,-0.000722,99.443414,1.01053,0.00035222,197.146]
+else if (astre=="Saturne") constante=['',266.564377,1223.509884,0.0003245,9.55491173474,0.05589232,-0.0003455,-0.000000728,2.492519,-0.0039189,-0.00001549,175.46622,1221.55147,-0.000502,112.790414,0.8731951,-0.00015218,166.194]
+else if (astre=="Uranus") constante=['',244.19747,429.863546,0.000316,19.21844609894,0.0463444,-0.00002658,0.000000077,0.772464,0.0006253,0.0000395,72.648778,428.3791132,0.0000788,73.477111,0.4986678,0.0013117,70.481]
+else if (astre=="Neptune") constante=['',84.457994,219.885914,0.0003205,30.11038703542,0.00899704,0.00000633,-0.000000002,1.779242,-0.0095436,-0.0000091,37.73063,218.4613396,-0.00007032,130.681389,1.098935,0.00024987,68.289]
+
+l = (constante[1]+constante[2] * t+constante[3] * t2) / ct1;
+l = l - y * floor(l / y);
+
+a = constante[4];
+
+e = constante[5]+constante[6] * t+constante[7] * t2;
+i = (constante[8]+constante[9] * t+constante[10] * t2) / ct1;
+m = (constante[11]+constante[12] * t+constante[13] * t2) / ct1;
+m = m - y * floor(m / y);
+longitude_noeud = (constante[14]+constante[15] * t+constante[16] * t2) / ct1;
+
+m1 = (102.27938+149472.51529 * t+0.000007 * t2) / ct1;
+m2 = (212.60322+58517.80387 * t+0.001286 * t2) / ct1;
+m4 = (319.51913+19139.85475 * t+0.000181 * t2) / ct1;
+m5 = (225.32833+3034.69202 * t - 0.000722 * t2) / ct1;
+m6 = (175.46622+1221.55147 * t - 0.000502 * t2) / ct1;
+
+m1= m1 - y * floor(m1 / y);
+m2= m2 - y * floor(m2 / y);
+m4 = m4 - y * floor(m4 / y);
+m5 = m5 - y * floor(m5 / y);
+m6 = m6 - y * floor(m6 / y);
+
+if (astre=="Venus") {
+   l = l+0.00077 / ct1 * sin(237.24 / ct1+150.27 / ct1 * t);
+   m = m+0.00077 / ct1 * sin(237.24 / ct1+150.27 / ct1 * t);
+}
+else if (astre=="Mars") {
+   corr = -0.01133 / ct1 * sin(3 * m5 - 8 * m4+4 * m) - 0.00933 / ct1 * cos(3 * m5 - 8 * m4+4 * m);
+   l = l+corr;
+   m = m+corr;
+}
+else if (astre=="Jupiter") {
+   u = t / 5+0.1;
+   p = (237.475+3034.9061 * t) / ct1;
+   q = (265.916+1222.1139 * t) / ct1;
+   v = 5 * q - 2 * p;
+   dzeta = q - p;
+
+   granda = (0.3314 - 0.0103 * u - 0.0047 * u * u) * sin(v);
+   granda = granda+(0.0032 - 0.0644 * u+0.0021 * u * u) * cos(v);
+   granda = granda+0.0136 * sin(dzeta)+0.0185 * sin(2 * dzeta)+0.0067 * sin(3 * dzeta);
+   granda = granda+(0.0073 * sin(dzeta)+0.0064 * sin(2 * dzeta) - 0.0338 * cos(dzeta)) * sin(q);
+   granda = granda - (0.0357 * sin(dzeta)+0.0063 * cos(dzeta)+0.0067 * cos(2 * dzeta)) * cos(q);
+
+   grandb = (361+13 * u) * sin(v)+(129 - 58 * u) * cos(v);
+   grandb = grandb+(128 * cos(dzeta) - 676 * sin(dzeta) - 111 * sin(2 * dzeta)) * sin(q);
+   grandb = grandb+(146 * sin(dzeta) - 82+607 * cos(dzeta)+99 * cos(2 * dzeta)+51 * cos(3 * dzeta)) * cos(q);
+   grandb = grandb - (96 * sin(dzeta)+100 * cos(dzeta)) * sin(2 * q) - (96 * sin(dzeta) - 102 * cos(dzeta)) * cos(2 * q);
+
+   grandc = (0.0072 - 0.0031 * u) * sin(v) - 0.0204 * cos(v);
+   grandc = grandc+(0.0073 * sin(dzeta)+0.034 * cos(dzeta)+0.0056 * cos(2 * dzeta)) * sin(q);
+   grandc = grandc+(0.0378 * sin(dzeta)+0.0062 * sin(2 * dzeta) - 0.0066 * cos(dzeta)) * cos(q);
+   grandc = grandc - 0.0054 * sin(dzeta) * sin(2 * q)+0.0055 * cos(dzeta) * cos(2 * q);
+
+   grandd = -263 * cos(v)+205 * cos(dzeta)+693 * cos(2 * dzeta)+312 * cos(3 * dzeta)+299 * sin(dzeta) * sin(q)+(204 * sin(2 * dzeta) - 337 * cos(dzeta)) * cos(q);
+
+   l = l+granda / ct1;
+   m = m+granda / ct1 - grandc / ct1 / e;
+   e = e+grandb / 1000000;
+   a = a+grandd / 1000000;
+}
+else if (astre=="Saturne") {
+   u = t / 5+0.1;
+   p = (237.475+3034.9061 * t) / ct1;
+   q = (265.916+1222.1139 * t) / ct1;
+   v = 5 * q - 2 * p;
+   dzeta = q - p;
+
+   granda = (-0.8142+0.0181 * u+0.0167 * u * u) * sin(v);
+   granda = granda+(-0.0105+0.1609 * u - 0.0041 * u * u) * cos(v);
+   granda = granda - 0.1488 * sin(dzeta) - 0.0408 * sin(2 * dzeta) - 0.0152 * sin(3 * dzeta);
+   granda = granda+(0.0089 * sin(dzeta) - 0.0165 * sin(2 * dzeta)) * sin(q);
+   granda = granda+(0.0813 * cos(dzeta)+0.015 * cos(2 * dzeta)) * sin(q);
+   granda = granda+(0.0856 * sin(dzeta)+0.0253 * cos(dzeta)+0.0144 * cos(2 * dzeta)) * cos(q);
+   granda = granda+0.0092 * sin(2 * dzeta) * sin(2 * q);
+
+   grandb = (-793+255 * u) * sin(v)+(1338+123 * u) * cos(v);
+   grandb = grandb+1241 * sin(q)+(39 - 62 * u) * sin(dzeta) * sin(q);
+   grandb = grandb+(2660 * cos(dzeta) - 469 * cos(2 * dzeta) - 187 * cos(3 * dzeta) - 82 * cos(4 * dzeta)) * sin(q);
+   grandb = grandb - (1270 * sin(dzeta)+420 * sin(2 * dzeta)+150 * sin(3 * dzeta)) * cos(q);
+   grandb = grandb - 62 * sin(4 * dzeta) * cos(q);
+   grandb = grandb+(221 * sin(dzeta) - 221 * sin(2 * dzeta) - 57 * sin(3 * dzeta)) * sin(2 * q);
+   grandb = grandb - (278 * cos(dzeta) - 202 * cos(2 * dzeta)) * sin(2 * q);
+   grandb = grandb - (284 * sin(dzeta)+159 * cos(dzeta)) * cos(2 * q);
+   grandb = grandb+(216 * cos(2 * dzeta)+56 * cos(3 * dzeta)) * cos(2 * q);
+
+   grandc = (0.0771+0.0072 * u) * sin(v);
+   grandc = grandc+(0.0458 - 0.0148 * u) * cos(v);
+   grandc = grandc - (0.0758 * sin(dzeta)+0.0248 * sin(2 * dzeta)+0.0086 * sin(3 * dzeta)) * sin(q);
+   grandc = grandc - (0.0726+0.1504 * cos(dzeta) - 0.0269 * cos(2 * dzeta) - 0.0101 * cos(3 * dzeta)) * cos(q);
+   grandc = grandc - (0.0136 * sin(dzeta) - 0.0136 * cos(2 * dzeta)) * sin(2 * q);
+   grandc = grandc - (0.0137 * sin(dzeta) - 0.012 * sin(2 * dzeta)) * cos(2 * q);
+   grandc = grandc+(0.0149 * cos(dzeta) - 0.0131 * cos(2 * dzeta)) * cos(2 * q);
+
+   grandd = 2933 * cos(v)+33629 * cos(dzeta) - 3081 * cos(2 * dzeta) - 1423 * cos(3 * dzeta) - 671 * cos(4 * dzeta)+(1098 - 2812 * sin(dzeta)+688 * sin(2 * dzeta)) * sin(q);
+   grandd = grandd+(2138 * cos(dzeta) - 999 * cos(2 * dzeta) - 642 * cos(3 * dzeta)) * sin(q) - 890 * cos(q)+(2206 * sin(dzeta) - 1590 * sin(2 * dzeta) - 647 * sin(3 * dzeta)) * cos(q)+(2885 * cos(dzeta)+2172 * cos(2 * dzeta)) * cos(q) - 778 * cos(dzeta) * sin(2 * q) - 856 * sin(dzeta) * cos(2 * q);
+
+   l = l+granda / ct1;
+   m = m+granda / ct1 - grandc / ct1 / e;
+   e = e+grandb / 1000000;
+   a = a+grandd / 1000000;
+}
+else if (astre=="Uranus") {
+   u = t / 5+0.1;
+   p = (237.475+3034.9061 * t) / ct1;
+   q = (265.916+1222.1139 * t) / ct1;
+   g = (83.76922+218.4901 * t) / ct1;
+   h = (284.02+8.51 * t) / ct1;
+   s = (243.52+428.47 * t) / ct1;
+   w = 2 * p - 6 * q+3 * s;
+   dzeta = s - p;
+   eta = s - q;
+   theta = (200.25 - 209.98 * t) / ct1;
+
+   granda = (0.864319 - 0.001583 * u) * sin(h)+0.036017 * sin(2 * h)+(0.082222 - 0.006833 * u) * cos(h) - 0.003019 * cos(2 * h)+0.008122 * sin(w);
+   grandb = 2098 * cos(h) - 335 * sin(h)+131 * cos(2 * h);
+   grandc = 0.120303 * sin(h)+(0.019472 - 0.000947 * u) * cos(h)+0.006197 * sin(2 * h);
+   grandd = -3825 * cos(h);
+
+   l = l+granda / ct1;
+   m = m+granda / ct1 - grandc / ct1 / e;
+   e = e+grandb / 1000000;
+   a = a+grandd / 1000000;
+}
+else if (astre=="Neptune") {
+   u = t / 5+0.1;
+   p = (237.475+3034.9061 * t) / ct1;
+   q = (265.916+1222.1139 * t) / ct1;
+   g = (83.76922+218.4901 * t) / ct1;
+   h = (284.02+8.51 * t) / ct1;
+   theta = (200.25 - 209.98 * t) / ct1;
+   dzeta = (153.71+2816.42 * t) / ct1;
+   eta = (182.15+1003.62 * t) / ct1;
+
+   granda = (-0.589833+0.001089 * u) * sin(h)+(-0.056094+0.004658 * u) * cos(h) - 0.024286 * sin(2 * h);
+   grandb = 438.9 * sin(h)+426.2 * cos(h)+112.9 * sin(2 * h)+108.9 * cos(2 * h);
+   grandc = 0.024039 * sin(h) - 0.025303 * cos(h)+0.006206 * sin(2 * h) - 0.005992 * cos(2 * h);
+   grandd = -817 * sin(h)+8189 * cos(h)+781 * cos(2 * h);
+
+   l = l+granda / ct1;
+   m = m+granda / ct1 - grandc / ct1 / e;
+   e = e+grandb / 1000000;
+   a = a+grandd / 1000000;
+}
+
+grand_e = m;
+grand_e = m+e * sin(grand_e);
+grand_e = m+e * sin(grand_e);
+grand_e = m+e * sin(grand_e);
+grand_e = m+e * sin(grand_e);
+grand_e = m+e * sin(grand_e);
+grand_e = m+e * sin(grand_e);
+grand_e = m+e * sin(grand_e);
+grand_e = m+e * sin(grand_e);
+grand_e = m+e * sin(grand_e);
+grand_e = m+e * sin(grand_e);
+
+v = 2 * atan(sqrt((1+e) / (1 - e)) * tan(grand_e / 2));
+
+if (v < 0) { v = v+2 * PI; }
+
+r = a * (1 - e * cos(grand_e));
+
+if (astre=="Mercure") {
+   r = r+0.000007525 * cos(2 * m5 - m1+53.013 / ct1);
+   r = r+0.000006802 * cos(5 * m2 - 3 * m1 - 259.918 / ct1);
+   r = r+0.000005457 * cos(2 * m2 - 2 * m1 - 71.188 / ct1);
+   r = r+0.000003569 * cos(5 * m2 - m1 - 77.75 / ct1);
+}
+else if (astre=="Venus") {
+   r = r+0.000022501 * cos(2 * m - 2 * m2 - 58.208 / ct1);
+   r = r+0.000019045 * cos(3 * m - 3 * m2+92.577 / ct1);
+   r = r+0.000006887 * cos(m5 - m2 - 118.09 / ct1);
+   r = r+0.000005172 * cos(m - m2 - 29.11 / ct1);
+   r = r+0.00000362 * cos(5 * m - 4 * m2 - 104.208 / ct1);
+   r = r+0.000003283 * cos(4 * m - 4 * m2+63.513 / ct1);
+   r = r+0.000003074 * cos(2 * m5 - 2 * m2 - 55.167 / ct1);
+}
+else if (astre=="Mars") {
+   r = r+0.000053227 * cos(m5 - m4+41.1306 / ct1);
+   r = r+0.000050989 * cos(2 * m5 - 2 * m4 - 101.9847 / ct1);
+   r = r+0.000038278 * cos(2 * m5 - m4 - 98.3292 / ct1);
+   r = r+0.000015996 * cos(m - m4 - 55.555 / ct1);
+   r = r+0.000014764 * cos(2 * m - 3 * m4+68.622 / ct1);
+   r = r+0.000008966 * cos(m5 - 2 * m4+43.615 / ct1);
+   r = r+0.000007914 * cos(3 * m5 - 2 * m4 - 139.737 / ct1);
+   r = r+0.000007004 * cos(2 * m5 - 3 * m4 - 102.888 / ct1);
+   r = r+0.00000662 * cos(m - 2 * m4+113.202 / ct1);
+   r = r+0.00000493 * cos(3 * m5 - 3 * m4 - 76.243 / ct1);
+   r = r+0.000004693 * cos(3 * m - 5 * m4+190.603 / ct1);
+   r = r+0.000004571 * cos(2 * m - 4 * m4+244.702 / ct1);
+   r = r+0.000004409 * cos(3 * m5 - m4 - 115.828 / ct1);
+}
+else if (astre=="Uranus") {
+   r = r - 0.025948+0.004985 * cos(dzeta) - 0.00123 * cos(s)+0.003354 * cos(eta);
+   r = r+(0.005795 * cos(s) - 0.001165 * sin(s)+0.001388 * cos(2 * s)) * sin(eta);
+   r = r+(0.001351 * cos(s)+0.005702 * sin(s)+0.00138 * sin(2 * s)) * cos(eta);
+   r = r+0.000904 * cos(2 * theta)+0.000894 * (cos(theta) - cos(3 * theta));
+}
+else if (astre=="Neptune") { r = r - 0.040596+0.004992 * cos(dzeta)+0.002744 * cos(eta)+0.002044 * cos(theta)+0.001051 * cos(2 * theta); }
+
+u = l+v - m - longitude_noeud;
+u = u - y * floor(u / y);
+
+if (cos(u) != 0) {
+   d = atan(cos(i) * tan(u));
+   if (cos(u) < 0) { d = d+PI; }
+}
+   else { d=u; }
+
+l = d+longitude_noeud;
+
+if (astre=="Mercure") {
+   l = l+0.00204 / ct1 * cos(5 * m2 - 2 * m1+12.22 / ct1);
+   l = l+0.00103 / ct1 * cos(2 * m2 - m1 - 160.692 / ct1);
+   l = l+0.00091 / ct1 * cos(2 * m5 - m1 - 37.003 / ct1);
+   l = l+0.00078 / ct1 * cos(5 * m2 - 3 * m1+10.137 / ct1);
+}
+else if (astre=="Venus") {
+   l = l+0.00313 / ct1 * cos(2 * m - 2 * m2 - 148.225 / ct1);
+   l = l+0.00198 / ct1 * cos(3 * m - 3 * m2+2.565 / ct1);
+   l = l+0.00136 / ct1 * cos(m - m2 - 119.107 / ct1);
+   l = l+0.00096 / ct1 * cos(3 * m - 2 * m2 - 135.912 / ct1);
+   l = l+0.00082 / ct1 * cos(m5 - m2 - 208.087 / ct1);
+}
+else if (astre=="Mars") {
+   l = l+0.00705 / ct1 * cos(m5 - m4 - 48.958 / ct1);
+   l = l+0.00607 / ct1 * cos(2 * m5 - m4 - 188.35 / ct1);
+   l = l+0.00445 / ct1 * cos(2 * m5 - 2 * m4 - 191.897 / ct1);
+   l = l+0.00388 / ct1 * cos(m - 2 * m4+20.495 / ct1);
+   l = l+0.00238 / ct1 * cos(m - m4+35.097 / ct1);
+   l = l+0.00204 / ct1 * cos(2 * m - 3 * m4+158.638 / ct1);
+   l = l+0.00177 / ct1 * cos(3 * m4 - m2 - 57.602 / ct1);
+   l = l+0.00136 / ct1 * cos(2 * m - 4 * m4+154.093 / ct1);
+   l = l+0.00104 / ct1 * cos(m5+17.618 / ct1);
+}
+else if (astre=="Uranus") {
+   l = l+((0.010122 - 0.000988 * u) * sin(s+eta)+(-0.038581+0.002031 * u - 0.00191 * u * u) * cos(s+eta)+(0.034964 - 0.001038 * u+0.000868 * u * u) * cos(2 * s+eta) - 0.014808 * sin(dzeta) - 0.005794 * sin(eta)+0.002347 * cos(eta)+0.009872 * sin(theta)+0.008803 * sin(2 * theta) - 0.004308 * sin(3 * theta)) / ct1;
+}
+else if (astre=="Neptune") { l = l+(0.009556 * sin(dzeta)+0.005178 * sin(eta)) / ct1; }
+
+if (l > 2 * PI) { l = l - 2 * PI; }
+
+b = asin(sin(u) * sin(i));
+
+if (astre=="Saturne") {
+    corr = 0.000747 * cos(dzeta) * sin(q)+0.001069 * cos(dzeta) * cos(q);
+    corr = corr+0.002108 * sin(2 * dzeta) * sin(2 * q)+0.001261 * cos(2 * dzeta) * sin(2 * q);
+    corr = corr+0.001236 * sin(2 * dzeta) * cos(2 * q) - 0.002075 * cos(2 * dzeta) * cos(2 * q);
+    b = b+corr / ct1;
+}
+else if (astre=="Uranus") {
+   corr = (0.000458 * sin(eta) - 0.000642 * cos(eta) - 0.000517 * cos(4 * theta)) * sin(s);
+   corr = corr - (0.000347 * sin(eta)+0.000853 * cos(eta)+0.000517 * sin(4 * eta)) * cos(s);
+   corr = corr+0.000403 * (cos(2 * theta) * sin(2 * s)+sin(2 * theta) * cos(2 * s));
+   b = b+corr / ct1;
+}
+else if (astre=="Neptune") { b = b+(0.000336 * cos(2 * theta) * sin(g)+0.000364 * sin(2 * theta) * cos(g)) / ct1; }
+
+numerateur = r * cos(b) * sin(l - longitude_terre+PI);
+denominateur = r * cos(b) * cos(l - longitude_terre+PI)+distance_terre_soleil;
+
+//l = atan(numerateur / denominateur)+longitude_terre+PI;
+
+//if (l>2*PI) { l=l-2*PI; }
+
+//if (denominateur < 0) { l = l+PI; }
+
+diametre = constante[17];
+
+//xp = r * cos(b) * cos(l) - distance_terre_soleil * cos(latitude_terre) * cos(longitude_terre);
+//yp = r * cos(b) * sin(l) - distance_terre_soleil * cos(latitude_terre) * sin(longitude_terre);
+//zp = r * sin(b) - distance_terre_soleil * sin(latitude_terre);
+
+if (iteration == 1) { distance_terre = sqrt(numerateur*numerateur+denominateur*denominateur+r*r*sin(b)*sin(b)); }
+
+return floor(diametre/distance_terre*100+0.5)/100 ; }
+}
+</SCRIPT>
+</FORM>
+</CENTER>
+</BODY>
+</HTML>

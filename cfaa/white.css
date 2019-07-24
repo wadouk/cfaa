@@ -1,0 +1,56 @@
+BODY {
+ background-color: #FFFFFF;
+ scrollbar-face-color: #FFFFFF;
+ scrollbar-shadow-color: #000000;
+ scrollbar-highlight-color: #000000;
+ scrollbar-3dlight-color: #FFFFFF;
+ scrollbar-darkshadow-color: #FFFFFF;
+ scrollbar-track-color: #FFFFFF;
+ scrollbar-arrow-color: #000000;
+  }
+  
+ A:link.Accueil {
+ text-decoration: none;
+ color:#000000;!important
+ }
+ 
+ A:visited.Accueil{
+ text-decoration: none;
+ color: #000000;
+ }
+ 
+.sombre {
+ background: #FFFFFF;
+ }
+  
+.titre {
+ color:#000000;/**/
+ }
+
+.MaTable {
+ border-color: #000000 #000000 #000000 #000000;
+ background-color: #FFFFFF;
+ }
+
+.boite {
+border:solid 0px #FFFFFF;/*!!!!!*/
+background-color:#FFFFFF;
+ border-color: #FFFFFF #000000 #000000 #000000;
+}
+
+.onglet {
+border:solid 0px #FFFFFF;/*!!!!!*/
+border-color: #000000 #000000 #000000 #000000;
+background-color:#FFFFFF;
+}
+
+a.onglet {
+text-decoration:none;
+color:silver!important;
+}
+
+.onglet-actif {
+border:solid 1px #000000;
+border-bottom:solid 1px #FFFFFF;
+background-color:#FFFFFF;
+}
