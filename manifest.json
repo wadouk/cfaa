@@ -1,0 +1,18 @@
+{
+  "name": "Calcul de Focales pour l'Astronomie",
+  "short_name": "CFAA",
+  "theme_color": "#c0c8e8",
+  "lang": "fr",
+  "description": "Calculs de Focales pour l'Astronome Amateur",
+  "background_color": "#c0c8e8",
+  "display": "browser",
+  "scope": "/cfaa/",
+  "icons": [
+    {
+      "src": "cfaa/cfaa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/cfaa/"
+}
